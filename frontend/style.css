@@ -1,0 +1,101 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.form-container {
+    background-color: #fff;
+    padding: 20px 25px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 320px;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+label {
+    font-size: 14px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+input {
+    width: 94%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #4caf50;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:disabled {
+    background-color: #9e9e9e;
+    cursor: not-allowed;
+}
+
+button:hover:enabled {
+    background-color: #45a049;
+}
+
+.link-text {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.link-text a {
+    color: #4caf50;
+    text-decoration: none;
+}
+
+.link-text a:hover {
+    text-decoration: underline;
+}
+
+/* Password rules feedback */
+#passwordRules {
+    font-size: 12px;
+    margin: -10px 0 15px;
+    padding-left: 20px;
+}
+
+#passwordRules li {
+    margin-bottom: 4px;
+}
+
+/* Hide errors initially */
+#passwordRules li,
+#matchMessage {
+    display: none;
+}
+
+.valid {
+    color: green;
+}
+
+.invalid {
+    color: red;
+}
+
+#matchMessage {
+    font-size: 12px;
+    margin-top: -10px;
+}
