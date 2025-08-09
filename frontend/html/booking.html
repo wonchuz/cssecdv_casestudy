@@ -6,13 +6,39 @@
   <title>Library Books</title>
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="stylesheet" href="../css/books.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
 </head>
 <body>
-  <div class="form-container-books">
-    <h2 class="page-title">Available Books</h2>
-    <div class="book-list" id="bookList">Loading...</div>
+
+  <div class="main-wrapper">
+    <nav class="sidebar" id="sidebar">
+      <div class="username" id="username">Username123</div>
+      <div class="nav-item active" data-tab="books">Available Books</div>
+      <div class="nav-item" data-tab="profile">Profile</div>
+    </nav>
+
+    <main class="content" id="content">
+        <!-- Available Books Content -->
+        <div class="form-container-books" id="booksContainer">
+            <h2 class="page-title">Available Books</h2>
+            <div class="book-list" id="bookList">Loading...</div>
+        </div>
+
+      <!-- Profile Content -->
+        <div class="form-container-profile" id="profileContainer" style="display:none;">
+            <h2 class="page-title">Profile</h2>
+            <p>User profile details go here.</p>
+
+            <div class="profile-actions">
+                <button id="changePasswordBtn">Change Password</button>
+                <button id="logoutBtn">Logout</button>
+            </div> 
+        </div>
+
+    </main>
   </div>
 
+  <script src="../js/layout.js"></script>
   <script src="../js/books.js"></script>
 </body>
 </html>
