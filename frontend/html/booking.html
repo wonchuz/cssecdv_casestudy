@@ -1,98 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library Books</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: white;
-            color: black;
-            padding: 20px;
-        }
-        h1 {
-            text-align: center;
-            border-bottom: 2px solid black;
-            padding-bottom: 10px;
-        }
-        .book-list {
-            max-width: 600px;
-            margin: 20px auto;
-            border: 1px solid black;
-            border-radius: 5px;
-            overflow: hidden;
-        }
-        .book {
-            padding: 15px;
-            border-bottom: 1px solid black;
-        }
-        .book:last-child {
-            border-bottom: none;
-        }
-        .title {
-            font-weight: bold;
-            font-size: 1.1em;
-        }
-        .author {
-            color: gray;
-        }
-        button {
-            margin-top: 8px;
-            padding: 5px 10px;
-            border: 1px solid black;
-            background-color: white;
-            cursor: pointer;
-        }
-        button:disabled {
-            background-color: lightgray;
-            cursor: not-allowed;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Library Books</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/books.css" />
 </head>
 <body>
-    <h1>Available Books</h1>
+  <div class="form-container-books">
+    <h2 class="page-title">Available Books</h2>
     <div class="book-list" id="bookList">Loading...</div>
+  </div>
 
-    <script>
-        function loadBooks() {
-            fetch("http://localhost:3000/books")
-                .then(res => res.json())
-                .then(books => {
-                    const bookList = document.getElementById("bookList");
-                    bookList.innerHTML = "";
-                    books.forEach(book => {
-                        const bookDiv = document.createElement("div");
-                        bookDiv.className = "book";
-                        bookDiv.innerHTML = `
-                            <div class="title">${book.title}</div>
-                            <div class="author">${book.author}</div>
-                            <button ${book.reserved ? "disabled" : ""} onclick="reserveBook(${book.id})">
-                                ${book.reserved ? "Reserved" : "Reserve"}
-                            </button>
-                        `;
-                        bookList.appendChild(bookDiv);
-                    });
-                })
-                .catch(err => {
-                    document.getElementById("bookList").innerHTML = "<p>Error loading books</p>";
-                });
-        }
-
-        function reserveBook(id) {
-            fetch(`http://localhost:3000/reserve/${id}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" }
-            })
-            .then(res => res.json())
-            .then(response => {
-                alert(response.message || response.error);
-                loadBooks(); // Refresh list
-            })
-            .catch(err => console.error(err));
-        }
-
-        loadBooks();
-    </script>
+  <script src="../js/books.js"></script>
 </body>
 </html>
