@@ -1,3 +1,8 @@
+// TODO:
+// ensure that this is secure??
+// also set userId upon login
+localStorage.setItem("userId", `689a3712fdf068514776dabf`);
+
 function loadBooks() {
   fetch("http://localhost:3000/books")
     .then((res) => res.json())
@@ -80,10 +85,36 @@ function loadBorrowedBooks(userId) {
 
 
 function borrowBook(id) {
+  const userId = localStorage.getItem("userId"); // might need to be reworked to something more secure?
+  if (!userId) {
+    alert("You must be logged in to return a book.");
+    return;
+  }
+
   fetch(`http://localhost:3000/borrow/${id}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId: "689a3712fdf068514776dabf" }) // replace with actual logged-in user ID
+    body: JSON.stringify({ userId }) // replace with actual logged-in user ID
+  })
+    .then((res) => res.json())
+    .then((response) => {
+      alert(response.message || response.error);
+      loadBooks();
+    })
+    .catch((err) => console.error(err));
+}
+
+function returnBook(id) {
+  const userId = localStorage.getItem("userId"); // might need to be reworked to something more secure?
+  if (!userId) {
+    alert("You must be logged in to return a book.");
+    return;
+  }
+  
+  fetch(`http://localhost:3000/return/${id}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId }) // replace with actual logged-in user ID
   })
     .then((res) => res.json())
     .then((response) => {
@@ -97,5 +128,7 @@ function borrowBook(id) {
 
 loadBooks();
 // TODO:
-// have this load based on the currently loggin in user
-loadBorrowedBooks("689a3712fdf068514776dabf");
+// ensure that this is secure??
+// also set userId upon login
+// might no longer user "localStorage" once made secure
+loadBorrowedBooks(localStorage.getItem("userId"));
