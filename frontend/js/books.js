@@ -83,7 +83,7 @@ function borrowBook(id) {
   fetch(`http://localhost:3000/borrow/${id}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId: "USER_ID_HERE" }) // replace with actual logged-in user ID
+    body: JSON.stringify({ userId: "689a3712fdf068514776dabf" }) // replace with actual logged-in user ID
   })
     .then((res) => res.json())
     .then((response) => {
@@ -93,6 +93,9 @@ function borrowBook(id) {
     .catch((err) => console.error(err));
 }
 
+
+
 loadBooks();
-// find current logged in user
+// TODO:
+// have this load based on the currently loggin in user
 loadBorrowedBooks("689a3712fdf068514776dabf");

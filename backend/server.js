@@ -80,9 +80,20 @@ app.post("/borrow/:id", async (req, res) => {
     return res.status(400).json({ error: "User ID is required" });
   }
 
-  try {
-    const book = await Book.findById(id);
+  // Validate userId format
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json({ error: "Invalid User ID format" });
+  }
 
+  try {
+    // Check if user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Find the book
+    const book = await Book.findById(id);
     if (!book) {
       return res.status(404).json({ error: "Book not found" });
     }
@@ -90,15 +101,18 @@ app.post("/borrow/:id", async (req, res) => {
       return res.status(400).json({ error: "Book already borrowed" });
     }
 
+    // Borrow the book
     book.borrowed = true;
     book.borrowedBy = userId;
     await book.save();
 
     res.json({ message: "Book borrowed successfully", book });
   } catch (err) {
+    console.error("Error borrowing book:", err);
     res.status(500).json({ error: "Failed to borrow book" });
   }
 });
+
 
 // POST return book
 app.post("/return/:id", async (req, res) => {
