@@ -1,21 +1,37 @@
-Start by creating a new connection on MongoDB Compass
+# Library Book Reservation App
 
-create your .env file to match
-example content for .env:
-PORT=3000
-MONGO_URI=mongodb://127.0.0.1:27017/library
+## Setup Instructions
 
-navigate to backend
+### 1. Create a MongoDB Connection
+- Open **MongoDB Compass**
+- Create a new connection to your local MongoDB instance (e.g., `mongodb://127.0.0.1:27017`)
+
+---
+
+### 2. Create `.env` File
+Create a `.env` file in the **project root** with the following content:
+
+---
+
+### 3. Install Dependencies and Seed the Database
+Navigate to the backend folder and install required packages:
+
+```
 cd backend
-
-Install dependencies:
 npm install
+node seed.js```
 
-seed the database:
-node seed.js
-
-Start the server:
-node server.js
-
-alternatively: 
+Alternatively, from root:
+```
 node backend/seed.js
+---
+
+### 4. Start the Server
+```
+node server.js
+```
+
+Alternatively, from root:
+```
+node server.js
+```
