@@ -1,7 +1,5 @@
-// TODO:
-// ensure that this is secure??
-// also set userId upon login
-localStorage.setItem("userId", `689a3712fdf068514776dabf`);
+const user = JSON.parse(localStorage.getItem("user"));
+const userId = user?.id;
 
 function loadBooks() {
   fetch("http://localhost:3000/books")
@@ -35,23 +33,19 @@ function loadBorrowedBooks(userId) {
   const userList = document.getElementById("userList");
   userList.innerHTML = "";
 
-  // First fetch user profile
-  fetch(`http://localhost:3000/users/${userId}`)
-    .then((res) => res.json())
-    .then((user) => {
-      userList.innerHTML += `
-        <div class="user-info">
-          <p><strong>Name:</strong> ${user.fullName}</p>
-          <p><strong>Email:</strong> ${user.email}</p>
-          <p><strong>Username:</strong> ${user.username}</p>
-        </div>
-        <hr/>
-      `;
-    })
-    .catch((err) => {
-      console.error("Error loading user profile:", err);
-      userList.innerHTML = "<p>Error loading user profile</p>";
-    });
+  // First load user profile details
+  if (user) {
+    userList.innerHTML += `
+      <div class="user-info">
+        <p><strong>Name:</strong> ${user.fullName}</p>
+        <p><strong>Email:</strong> ${user.email}</p>
+        <p><strong>Username:</strong> ${user.username}</p>
+      </div>
+      <hr/>
+    `;
+  } else {
+    userList.innerHTML = "<p>No user logged in.</p>";
+  }
 
   // Then fetch borrowed books
   fetch(`http://localhost:3000/mybooks/${userId}`)
@@ -85,7 +79,6 @@ function loadBorrowedBooks(userId) {
 
 
 function borrowBook(id) {
-  const userId = localStorage.getItem("userId"); // might need to be reworked to something more secure?
   if (!userId) {
     alert("You must be logged in to return a book.");
     return;
@@ -94,7 +87,7 @@ function borrowBook(id) {
   fetch(`http://localhost:3000/borrow/${id}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId }) // replace with actual logged-in user ID
+    body: JSON.stringify({ userId })
   })
     .then((res) => res.json())
     .then((response) => {
@@ -105,7 +98,6 @@ function borrowBook(id) {
 }
 
 function returnBook(id) {
-  const userId = localStorage.getItem("userId"); // might need to be reworked to something more secure?
   if (!userId) {
     alert("You must be logged in to return a book.");
     return;
@@ -114,7 +106,7 @@ function returnBook(id) {
   fetch(`http://localhost:3000/return/${id}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId }) // replace with actual logged-in user ID
+    body: JSON.stringify({ userId })
   })
     .then((res) => res.json())
     .then((response) => {
@@ -131,4 +123,5 @@ loadBooks();
 // ensure that this is secure??
 // also set userId upon login
 // might no longer user "localStorage" once made secure
-loadBorrowedBooks(localStorage.getItem("userId"));
+console.log(user);
+loadBorrowedBooks(userId);

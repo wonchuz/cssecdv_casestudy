@@ -3,13 +3,29 @@ const form = document.getElementById('loginForm');
 form.addEventListener('submit', function (e) {
   e.preventDefault();
 
-  const username = form.username.value.trim();
-  const password = form.password.value.trim();
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
 
-  if (username && password) {
-    // Redirect to booking page on successful input
-    window.location.href = 'booking.html';
-  } else {
-    alert('Please enter both username and password.');
-  }
+  fetch("http://localhost:3000/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        alert(data.error);
+        return;
+      }
+
+      // Store user data in localStorage so you can use it later
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      alert("Login successful!");
+      window.location.href = "booking.html";
+    })
+    .catch(err => {
+      console.error("Login failed:", err);
+      alert("Something went wrong, please try again.");
+    });
 });

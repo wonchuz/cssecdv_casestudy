@@ -2,7 +2,7 @@ require("dotenv").config({ path: __dirname + "/../.env" });
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-
+// const bcrypt = require("bcrypt"); // for password checking (next time nlang)
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -54,22 +54,22 @@ app.get("/mybooks/:userId", async (req, res) => {
   }
 });
 
-// GET user profile info
-app.get("/users/:userId", async (req, res) => {
-  try {
-    const user = await User.findById(req.params.userId)
-      .select("fullName email username");
+// // GET user profile info
+// app.get("/users/:userId", async (req, res) => {
+//   try {
+//     const user = await User.findById(req.params.userId)
+//       .select("fullName email username");
     
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
+//     if (!user) {
+//       return res.status(404).json({ error: "User not found" });
+//     }
 
-    res.json(user);
-  } catch (err) {
-    console.error("Error fetching user profile:", err);
-    res.status(500).json({ error: "Failed to fetch user profile" });
-  }
-});
+//     res.json(user);
+//   } catch (err) {
+//     console.error("Error fetching user profile:", err);
+//     res.status(500).json({ error: "Failed to fetch user profile" });
+//   }
+// });
 
 // POST borrow book
 app.post("/borrow/:id", async (req, res) => {
@@ -136,6 +136,42 @@ app.post("/return/:id", async (req, res) => {
     res.json({ message: "Book returned successfully", book });
   } catch (err) {
     res.status(500).json({ error: "Failed to return book" });
+  }
+});
+
+// POST login
+app.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ error: "Username and password are required" });
+  }
+
+  try {
+    // Find user by username
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(401).json({ error: "Invalid username or password" });
+    }
+
+    // Compare passwords (assuming they are hashed in the DB)
+    const isMatch = await user.password === password;
+    if (!isMatch) {
+      return res.status(401).json({ error: "Invalid username or password" });
+    }
+
+    // Success
+    res.json({
+      message: "Login successful",
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        username: user.username
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Login failed" });
   }
 });
 
