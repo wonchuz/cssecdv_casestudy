@@ -17,3 +17,5 @@ node seed.js
 Start the server:
 node server.js
 
+alternatively: 
+node backend/seed.js

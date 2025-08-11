@@ -12,8 +12,8 @@ function loadBooks() {
         bookDiv.innerHTML = `
           <div class="title">${book.title}</div>
           <div class="author">${book.author}</div>
-          <button ${book.reserved ? "disabled" : ""} onclick="reserveBook(${book.id})">
-            ${book.reserved ? "Reserved" : "Reserve"}
+          <button ${book.borrowed ? "disabled" : ""} onclick="borrowBook('${book._id}')">
+            ${book.borrowed ? "Borrowed" : "Borrow"}
           </button>
         `;
 
@@ -26,10 +26,11 @@ function loadBooks() {
     });
 }
 
-function reserveBook(id) {
-  fetch(`http://localhost:3000/reserve/${id}`, {
+function borrowBook(id) {
+  fetch(`http://localhost:3000/borrow/${id}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId: "USER_ID_HERE" }) // replace with actual logged-in user ID
   })
     .then((res) => res.json())
     .then((response) => {

@@ -1,36 +1,102 @@
-// Borrow a book
-app.post("/borrow/:bookId", async (req, res) => {
-  const { userId } = req.body; // You’d normally get this from login/session
-  const { bookId } = req.params;
+require("dotenv").config({ path: __dirname + "/../.env" });
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
 
-  const book = await Book.findById(bookId);
-  if (!book) return res.status(404).send("Book not found");
-  if (book.borrowed) return res.status(400).send("Book already borrowed");
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-  book.borrowed = true;
-  book.borrowedBy = userId;
-  await book.save();
+// ===== Connect to MongoDB =====
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => console.log("✅ Connected to MongoDB"))
+  .catch(err => console.error("MongoDB connection error:", err));
 
-  res.send("Book borrowed successfully");
+// ===== Schemas =====
+const userSchema = new mongoose.Schema({
+  fullName: String,
+  email: { type: String, unique: true },
+  username: { type: String, unique: true },
+  password: String
+});
+const User = mongoose.model("User", userSchema);
+
+const bookSchema = new mongoose.Schema({
+  title: String,
+  author: String,
+  borrowed: { type: Boolean, default: false },
+  borrowedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null }
+});
+const Book = mongoose.model("Book", bookSchema);
+
+// ===== Routes =====
+
+// GET all books
+app.get("/books", async (req, res) => {
+  try {
+    const books = await Book.find();
+    res.json(books);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch books" });
+  }
 });
 
-// Return a book
-app.post("/return/:bookId", async (req, res) => {
-  const { bookId } = req.params;
+// POST borrow book
+app.post("/borrow/:id", async (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.body;
 
-  const book = await Book.findById(bookId);
-  if (!book) return res.status(404).send("Book not found");
-  if (!book.borrowed) return res.status(400).send("Book is not borrowed");
+  if (!userId) {
+    return res.status(400).json({ error: "User ID is required" });
+  }
 
-  book.borrowed = false;
-  book.borrowedBy = null;
-  await book.save();
+  try {
+    const book = await Book.findById(id);
 
-  res.send("Book returned successfully");
+    if (!book) {
+      return res.status(404).json({ error: "Book not found" });
+    }
+    if (book.borrowed) {
+      return res.status(400).json({ error: "Book already borrowed" });
+    }
+
+    book.borrowed = true;
+    book.borrowedBy = userId;
+    await book.save();
+
+    res.json({ message: "Book borrowed successfully", book });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to borrow book" });
+  }
 });
 
-// Get books borrowed by a user
-app.get("/mybooks/:userId", async (req, res) => {
-  const books = await Book.find({ borrowedBy: req.params.userId });
-  res.json(books);
+// POST return book
+app.post("/return/:id", async (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.body;
+
+  try {
+    const book = await Book.findById(id);
+
+    if (!book) {
+      return res.status(404).json({ error: "Book not found" });
+    }
+    if (!book.borrowed || book.borrowedBy.toString() !== userId) {
+      return res.status(400).json({ error: "You cannot return this book" });
+    }
+
+    book.borrowed = false;
+    book.borrowedBy = null;
+    await book.save();
+
+    res.json({ message: "Book returned successfully", book });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to return book" });
+  }
 });
+
+// ===== Start Server =====
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
