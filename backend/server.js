@@ -1,44 +1,36 @@
-require("dotenv").config({ path: __dirname + "/../.env" });
-const express = require("express");
-const mongoose = require("mongoose");
+// Borrow a book
+app.post("/borrow/:bookId", async (req, res) => {
+  const { userId } = req.body; // You’d normally get this from login/session
+  const { bookId } = req.params;
 
-const app = express();
-app.use(express.json());
+  const book = await Book.findById(bookId);
+  if (!book) return res.status(404).send("Book not found");
+  if (book.borrowed) return res.status(400).send("Book already borrowed");
 
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log("✅ Connected to MongoDB"))
-.catch(err => console.error("❌ MongoDB connection error:", err));
+  book.borrowed = true;
+  book.borrowedBy = userId;
+  await book.save();
 
-const bookSchema = new mongoose.Schema({
-  title: String,
-  author: String,
-  reserved: { type: Boolean, default: false }
-});
-const Book = mongoose.model("Book", bookSchema);
-
-app.get("/books", async (req, res) => {
-  try {
-    const books = await Book.find();
-    res.json(books);
-  } catch {
-    res.status(500).json({ error: "Could not fetch books" });
-  }
+  res.send("Book borrowed successfully");
 });
 
-app.post("/books", async (req, res) => {
-  try {
-    const newBook = new Book(req.body);
-    await newBook.save();
-    res.status(201).json(newBook);
-  } catch {
-    res.status(400).json({ error: "Could not create book" });
-  }
+// Return a book
+app.post("/return/:bookId", async (req, res) => {
+  const { bookId } = req.params;
+
+  const book = await Book.findById(bookId);
+  if (!book) return res.status(404).send("Book not found");
+  if (!book.borrowed) return res.status(400).send("Book is not borrowed");
+
+  book.borrowed = false;
+  book.borrowedBy = null;
+  await book.save();
+
+  res.send("Book returned successfully");
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+// Get books borrowed by a user
+app.get("/mybooks/:userId", async (req, res) => {
+  const books = await Book.find({ borrowedBy: req.params.userId });
+  res.json(books);
 });
