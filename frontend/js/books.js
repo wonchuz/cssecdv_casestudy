@@ -26,6 +26,39 @@ function loadBooks() {
     });
 }
 
+function loadBorrowedBooks(userId) {
+  fetch(`http://localhost:3000/mybooks/${userId}`)
+    .then((res) => res.json())
+    .then((books) => {
+      const userList = document.getElementById("userList");
+      userList.innerHTML = "";
+
+      if (books.length === 0) {
+        userList.innerHTML = "<p>You have not borrowed any books.</p>";
+        return;
+      }
+
+      books.forEach((book) => {
+        const bookDiv = document.createElement("div");
+        bookDiv.className = "book";
+
+        bookDiv.innerHTML = `
+          <div class="title">${book.title}</div>
+          <div class="author">${book.author}</div>
+          <button onclick="returnBook('${book._id}', '${userId}')">
+            Return Book
+          </button>
+        `;
+
+        userList.appendChild(bookDiv);
+      });
+    })
+    .catch((err) => {
+      document.getElementById("userList").innerHTML = "<p>Error loading borrowed books</p>";
+      console.error(err);
+    });
+}
+
 function borrowBook(id) {
   fetch(`http://localhost:3000/borrow/${id}`, {
     method: "POST",
@@ -41,3 +74,5 @@ function borrowBook(id) {
 }
 
 loadBooks();
+// find current logged in user
+loadBorrowedBooks("689a3712fdf068514776dabf");

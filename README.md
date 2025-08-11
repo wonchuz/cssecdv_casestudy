@@ -42,5 +42,5 @@ node server.js
 Alternatively, from root:
 
 ```
-node server.js
+node backend/server.js
 ```

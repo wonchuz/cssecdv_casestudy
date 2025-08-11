@@ -43,6 +43,18 @@ app.get("/books", async (req, res) => {
   }
 });
 
+// GET books borrowed by a specific user
+app.get("/mybooks/:userId", async (req, res) => {
+  try {
+    const books = await Book.find({ borrowedBy: req.params.userId });
+    res.json(books);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch borrowed books" });
+  }
+});
+
+
 // POST borrow book
 app.post("/borrow/:id", async (req, res) => {
   const { id } = req.params;
