@@ -27,14 +27,33 @@ function loadBooks() {
 }
 
 function loadBorrowedBooks(userId) {
+  const userList = document.getElementById("userList");
+  userList.innerHTML = "";
+
+  // First fetch user profile
+  fetch(`http://localhost:3000/users/${userId}`)
+    .then((res) => res.json())
+    .then((user) => {
+      userList.innerHTML += `
+        <div class="user-info">
+          <p><strong>Name:</strong> ${user.fullName}</p>
+          <p><strong>Email:</strong> ${user.email}</p>
+          <p><strong>Username:</strong> ${user.username}</p>
+        </div>
+        <hr/>
+      `;
+    })
+    .catch((err) => {
+      console.error("Error loading user profile:", err);
+      userList.innerHTML = "<p>Error loading user profile</p>";
+    });
+
+  // Then fetch borrowed books
   fetch(`http://localhost:3000/mybooks/${userId}`)
     .then((res) => res.json())
     .then((books) => {
-      const userList = document.getElementById("userList");
-      userList.innerHTML = "";
-
       if (books.length === 0) {
-        userList.innerHTML = "<p>You have not borrowed any books.</p>";
+        userList.innerHTML += "<p>You have not borrowed any books.</p>";
         return;
       }
 
@@ -54,10 +73,11 @@ function loadBorrowedBooks(userId) {
       });
     })
     .catch((err) => {
-      document.getElementById("userList").innerHTML = "<p>Error loading borrowed books</p>";
-      console.error(err);
+      console.error("Error loading borrowed books:", err);
+      userList.innerHTML += "<p>Error loading borrowed books</p>";
     });
 }
+
 
 function borrowBook(id) {
   fetch(`http://localhost:3000/borrow/${id}`, {

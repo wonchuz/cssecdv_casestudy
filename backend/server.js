@@ -54,6 +54,22 @@ app.get("/mybooks/:userId", async (req, res) => {
   }
 });
 
+// GET user profile info
+app.get("/users/:userId", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId)
+      .select("fullName email username");
+    
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(user);
+  } catch (err) {
+    console.error("Error fetching user profile:", err);
+    res.status(500).json({ error: "Failed to fetch user profile" });
+  }
+});
 
 // POST borrow book
 app.post("/borrow/:id", async (req, res) => {
