@@ -119,7 +119,7 @@ function returnBook(id) {
     .then((res) => res.json())
     .then((response) => {
       alert(response.message || response.error);
-      loadBooks();
+      loadBorrowedBooks(userId);
     })
     .catch((err) => console.error(err));
 }

@@ -29,9 +29,11 @@ navItems.forEach(item => {
     if (item.dataset.tab === "books") {
       booksContainer.style.display = "block";
       profileContainer.style.display = "none";
+      loadBooks();
     } else if (item.dataset.tab === "profile") {
       booksContainer.style.display = "none";
       profileContainer.style.display = "block";
+      loadBorrowedBooks(localStorage.getItem("userId"));
     }
   });
 });
