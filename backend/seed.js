@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 // ===== Import Schemas =====
 const User = require("./models/User");
 const Book = require("./models/Book");
+const Transaction = require("./models/Transaction");
 
 // ===== Seed Function =====
 mongoose.connect(process.env.MONGO_URI, {
@@ -16,6 +17,7 @@ mongoose.connect(process.env.MONGO_URI, {
 
   await Book.deleteMany({});
   await User.deleteMany({});
+  await Transaction.deleteMany({});
 
   const users = await User.insertMany([
     {
@@ -44,12 +46,7 @@ mongoose.connect(process.env.MONGO_URI, {
   await Book.insertMany([
     { title: "To Kill a Mockingbird", author: "Harper Lee" },
     { title: "1984", author: "George Orwell" },
-    {
-      title: "The Great Gatsby",
-      author: "F. Scott Fitzgerald",
-      borrowed: true,
-      borrowedBy: users[0]._id // Alice has borrowed this
-    }
+    { title: "The Great Gatsby", author: "F. Scott Fitzgerald"}
   ]);
 
   console.log("✅ Database seeded with users and books");
