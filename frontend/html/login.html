@@ -3,19 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Login Page</title>
+  <title>Login</title>
   <link rel="stylesheet" href="../css/style.css" />
 </head>
 <body>
   <div class="form-container">
     <h2>Login</h2>
     <form id="loginForm">
-      <label for="username">Username</label>
-      <input type="text" id="username" name="username" placeholder="Enter username" required />
+      <label for="identifier">Username or Email</label>
+      <input type="text" id="identifier" name="identifier" placeholder="Enter username or email" required />
 
       <label for="password">Password</label>
       <input type="password" id="password" name="password" placeholder="Enter password" required />
+      <div class="show-toggle">
+        <label><input type="checkbox" id="showLoginPwd" /> Show password</label>
+      </div>
 
+      <div id="err" style="color:red;min-height:18px;margin-bottom:10px;"></div>
       <button type="submit">Login</button>
     </form>
     <p class="link-text">

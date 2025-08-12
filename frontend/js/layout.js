@@ -1,73 +1,161 @@
-// Toggle dropdown menu on username click
-const usernameEl = document.getElementById("username");
-const dropdownMenu = document.getElementById("userDropdown");
+(() => {
+  'use strict';
 
-const user = JSON.parse(localStorage.getItem("user"));
-const userId = user?.id;
+  // tabs
+  const navItems = document.querySelectorAll(".nav-item");
+  const booksContainer = document.getElementById("booksContainer");
+  const profileContainer = document.getElementById("profileContainer");
 
-usernameEl.addEventListener("click", () => {
-  dropdownMenu.classList.toggle("show");
-});
+  navItems.forEach((item) => {
+    item.addEventListener("click", async () => {
+      navItems.forEach((i) => i.classList.remove("active"));
+      item.classList.add("active");
 
-// Hide dropdown when clicking outside
-window.addEventListener("click", (e) => {
-  if (!usernameEl.contains(e.target) && !dropdownMenu.contains(e.target)) {
-    dropdownMenu.classList.remove("show");
+      if (item.dataset.tab === "books") {
+        if (booksContainer) booksContainer.style.display = "block";
+        if (profileContainer) profileContainer.style.display = "none";
+        if (typeof window.loadBooks === "function") window.loadBooks();
+      } else if (item.dataset.tab === "profile") {
+        if (booksContainer) booksContainer.style.display = "none";
+        if (profileContainer) profileContainer.style.display = "block";
+        if (typeof window.loadBorrowedBooks === "function") window.loadBorrowedBooks();
+        // refresh security question when switching to profile
+        await loadSecurityQuestion();
+      }
+    });
+  });
+
+  // CSRF
+  let csrfTokenCache = null;
+  async function getCsrfToken() {
+    if (!csrfTokenCache) {
+      const res = await fetch("/api/csrf-token", { credentials: "include" });
+      const data = await res.json();
+      csrfTokenCache = data.csrfToken;
+    }
+    return csrfTokenCache;
   }
-});
+  async function apiFetch(url, options = {}) {
+    const method = (options.method || "GET").toUpperCase();
+    const headers = { ...(options.headers || {}) };
+    const init = { method, credentials: "include", headers };
+    if (options.body !== undefined) {
+      init.headers["Content-Type"] = init.headers["Content-Type"] || "application/json";
+      init.body = typeof options.body === "string" ? options.body : JSON.stringify(options.body);
+    }
+    if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
+      init.headers["CSRF-Token"] = await getCsrfToken();
+    }
+    let res = await fetch(url, init);
+    if (res.status === 403) {
+      const text = await res.text().catch(() => "");
+      if (!options.__retried && text.includes("Invalid request token")) {
+        csrfTokenCache = null;
+        init.headers["CSRF-Token"] = await getCsrfToken();
+        res = await fetch(url, { ...init, __retried: true });
+      } else {
+        throw new Error(text || "Forbidden");
+      }
+    }
+    return res;
+  }
 
-// Sidebar navigation
-const navItems = document.querySelectorAll(".nav-item");
-const booksContainer = document.getElementById("booksContainer");
-const profileContainer = document.getElementById("profileContainer");
-const mBContainer = document.getElementById("manageBooksContainer");
-const mRContainer = document.getElementById("manageReservationsContainer");
+  // toggle helpers (profile form)
+  const t1 = document.getElementById("showCurrentPwd");
+  const t2 = document.getElementById("showSqAnswer");
+  const t3 = document.getElementById("showNewPwd");
+  const t4 = document.getElementById("showConfirmNewPwd");
+  t1?.addEventListener("change", e => { document.getElementById("currentPwd").type = e.target.checked ? "text" : "password"; });
+  t2?.addEventListener("change", e => { document.getElementById("sqAnswer").type = e.target.checked ? "text" : "password"; });
+  t3?.addEventListener("change", e => { document.getElementById("newPwd").type = e.target.checked ? "text" : "password"; });
+  t4?.addEventListener("change", e => { document.getElementById("confirmNewPwd").type = e.target.checked ? "text" : "password"; });
 
-navItems.forEach(item => {
-  item.addEventListener("click", () => {
-    // Remove active class from all
-    navItems.forEach(i => i.classList.remove("active"));
-    // Add to clicked
-    item.classList.add("active");
+  // get random security question for the current user
+  async function loadSecurityQuestion() {
+    try {
+      const res = await fetch("/api/auth/security-question", { credentials: "include" });
+      if (!res.ok) throw new Error();
+      const q = await res.json();
+      document.getElementById("sqText").textContent = q.question;
+      document.getElementById("sqId").value = q.qid;
+      document.getElementById("sqAnswer").value = "";
+    } catch {
+      document.getElementById("sqText").textContent = "Unable to load security question.";
+    }
+  }
 
-    // Switch content
-    if (item.dataset.tab === "books") {
-      booksContainer.style.display = "block";
-      mBContainer.style.display = "none";
-      mRContainer.style.display = "none";
-      profileContainer.style.display = "none";
-      loadBooks();
-    } else if (item.dataset.tab === "manage-books") {
-      booksContainer.style.display = "none";
-      mBContainer.style.display = "block";
-      mRContainer.style.display = "none";
-      profileContainer.style.display = "none";
-      // TODO: Load manage books logic here
-    } else if (item.dataset.tab === "manage-reservations") {
-      booksContainer.style.display = "none";
-      mBContainer.style.display = "none";
-      mRContainer.style.display = "block";
-      profileContainer.style.display = "none";
-      // TODO: Load reservations logic here
-    } else if (item.dataset.tab === "profile") {
-      booksContainer.style.display = "none";
-      mBContainer.style.display = "none";
-      mRContainer.style.display = "none";
-      profileContainer.style.display = "block";
-      loadBorrowedBooks(localStorage.getItem("userId"));
+  // change password flow (reauth + change)
+  const changeForm = document.getElementById("changePwdForm");
+  changeForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const pwdMsg = document.getElementById("pwdMsg");
+    pwdMsg.textContent = "";
+
+    const currentPwd = document.getElementById("currentPwd").value;
+    const qid = document.getElementById("sqId").value;
+    const answer = document.getElementById("sqAnswer").value;
+    const newPwd = document.getElementById("newPwd").value;
+    const confirmNewPwd = document.getElementById("confirmNewPwd").value;
+
+    // quick client validation
+    const ok =
+      newPwd.length >= 10 &&
+      /[A-Z]/.test(newPwd) &&
+      /[a-z]/.test(newPwd) &&
+      /[0-9]/.test(newPwd) &&
+      /[^A-Za-z0-9]/.test(newPwd);
+    if (!ok) {
+      pwdMsg.textContent = "Password does not meet complexity rules.";
+      return;
+    }
+    if (newPwd !== confirmNewPwd) {
+      pwdMsg.textContent = "Passwords do not match.";
+      return;
+    }
+
+    try {
+      // reauth
+      let res = await apiFetch("/api/auth/reauth", { method: "POST", body: { password: currentPwd, qid, answer } });
+      if (!res.ok) {
+        pwdMsg.textContent = await res.text().catch(() => "Re-authentication failed.");
+        return;
+      }
+
+      // change password
+      res = await apiFetch("/api/auth/change-password", { method: "POST", body: { newPassword: newPwd } });
+      if (!res.ok) {
+        pwdMsg.textContent = await res.text().catch(() => "Password change failed.");
+        return;
+      }
+
+      pwdMsg.style.color = "green";
+      pwdMsg.textContent = "Password updated.";
+      // refresh next question
+      await loadSecurityQuestion();
+      document.getElementById("currentPwd").value = "";
+      document.getElementById("newPwd").value = "";
+      document.getElementById("confirmNewPwd").value = "";
+      document.getElementById("sqAnswer").value = "";
+      setTimeout(() => { pwdMsg.textContent = ""; pwdMsg.style.color = "#c00"; }, 3000);
+    } catch (err) {
+      pwdMsg.textContent = "Unable to change password.";
     }
   });
-});
 
-document.getElementById("changePasswordBtn").addEventListener("click", () => {
-  // Your change password logic or redirect
-  alert("Redirect to Change Password page or open modal");
-  // window.location.href = "/change-password.html";
-});
+  // logout
+  document.getElementById("logoutBtn")?.addEventListener("click", async () => {
+    try {
+      const res = await apiFetch("/api/auth/logout", { method: "POST" });
+      if (!res.ok) throw new Error("Logout failed.");
+      window.location.href = "/frontend/html/login.html";
+    } catch (e) {
+      alert(e.message || "Unable to logout.");
+    }
+  });
 
-document.getElementById("logoutBtn").addEventListener("click", () => {
-  // Your logout logic
-  alert("Logging out...");
-  window.location.href = "/login.html";
-});
-
+  // load a question on first render of profile (if opened by default later)
+  if (document.querySelector('.nav-item.active')?.dataset.tab === "profile") {
+    loadSecurityQuestion();
+  }
+})();

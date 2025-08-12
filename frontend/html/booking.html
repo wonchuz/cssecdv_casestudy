@@ -9,37 +9,75 @@
   <link rel="stylesheet" href="../css/layout.css" />
 </head>
 <body>
-
   <div class="main-wrapper">
     <nav class="sidebar" id="sidebar">
-      <div class="username" id="username">Username123</div>
+      <div class="username" id="username">Loading...</div>
       <div class="nav-item active" data-tab="books">Available Books</div>
       <div class="nav-item" data-tab="profile">Profile</div>
     </nav>
 
     <main class="content" id="content">
-        <!-- Available Books Content -->
-        <div class="form-container-books" id="booksContainer">
-            <h2 class="page-title">Available Books</h2>
-            <div class="book-list" id="bookList">Loading...</div>
+      <!-- books -->
+      <div class="form-container-books" id="booksContainer">
+        <h2 class="page-title">Available Books</h2>
+
+        <!-- add book (hidden unless admin/PM) -->
+        <div id="createBookWrap" style="display:none; margin: 10px 0 20px;">
+          <form id="createBookForm">
+            <div style="display:flex; gap:10px; align-items:center;">
+              <input id="newTitle" type="text" placeholder="Title" required />
+              <input id="newAuthor" type="text" placeholder="Author" required />
+              <button type="submit" style="width:auto;">Add Book</button>
+            </div>
+            <div id="bookCreateMsg" style="color:#c00; margin-top:6px; min-height:18px;"></div>
+          </form>
         </div>
 
-      <!-- Profile Content -->
-        <div class="form-container-profile" id="profileContainer" style="display:none;">
-            <h2 class="page-title">Profile</h2>
-            <!-- <p>User profile details go here.</p> -->
-            <div id="userList">Loading...</div>
+        <div class="book-list" id="bookList">Loading...</div>
+      </div>
 
-            <div class="profile-actions">
-                <button id="changePasswordBtn">Change Password</button>
-                <button id="logoutBtn">Logout</button>
-            </div> 
+      <!-- profile -->
+      <div class="form-container-profile" id="profileContainer" style="display:none;">
+        <h2 class="page-title">Profile</h2>
+        <div id="userList">Loading...</div>
+
+        <hr />
+
+        <!-- change password (inline form with security question) -->
+        <div style="max-width:520px; margin-top:10px;">
+          <h3 style="margin:10px 0;">Change Password</h3>
+          <form id="changePwdForm">
+            <label for="currentPwd">Current Password</label>
+            <input type="password" id="currentPwd" required />
+            <div class="show-toggle"><label><input type="checkbox" id="showCurrentPwd" /> Show password</label></div>
+
+            <div id="qaBlock" style="margin:8px 0;">
+              <div><strong>Security Question</strong></div>
+              <div id="sqText" style="margin:4px 0;">Loading question…</div>
+              <input type="hidden" id="sqId" />
+              <input type="password" id="sqAnswer" placeholder="Your answer" required />
+              <div class="show-toggle"><label><input type="checkbox" id="showSqAnswer" /> Show answer</label></div>
+            </div>
+
+            <label for="newPwd" style="margin-top:8px;">New Password</label>
+            <input type="password" id="newPwd" required />
+            <div class="show-toggle"><label><input type="checkbox" id="showNewPwd" /> Show password</label></div>
+
+            <label for="confirmNewPwd" style="margin-top:8px;">Confirm New Password</label>
+            <input type="password" id="confirmNewPwd" required />
+            <div class="show-toggle"><label><input type="checkbox" id="showConfirmNewPwd" /> Show password</label></div>
+
+            <div id="pwdMsg" style="min-height:18px; margin:6px 0; color:#c00;"></div>
+            <button type="submit" style="width:auto;">Update Password</button>
+          </form>
+
+          <button id="logoutBtn" style="width:auto; margin-top:10px; background-color:#000;">Logout</button>
         </div>
-
+      </div>
     </main>
   </div>
 
-  <script src="../js/layout.js"></script>
   <script src="../js/books.js"></script>
+  <script src="../js/layout.js"></script>
 </body>
 </html>

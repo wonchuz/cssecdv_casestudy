@@ -1,101 +1,99 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f2f5;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f0f2f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
 }
 
 .form-container {
-    background-color: #fff;
-    padding: 20px 25px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 320px;
+  background-color: #fff;
+  padding: 20px 25px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 320px;
 }
 
-h2 {
-    text-align: center;
-    margin-bottom: 20px;
-}
+h2 { text-align: center; margin-bottom: 20px; }
 
 label {
-    font-size: 14px;
-    display: block;
-    margin-bottom: 5px;
+  font-size: 14px;
+  display: block;
+  margin-bottom: 5px;
 }
 
-input {
-    width: 94%;
-    padding: 8px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+/* Text-like fields */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="search"],
+input[type="number"],
+.form-container select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
 }
 
+.form-container select {
+  background-color: #fff;
+  appearance: none; 
+}
+
+/* dropdown for sec. qs */
+.form-container select option { white-space: normal; }
+
+/* Real checkboxes stay compact */
+input[type="checkbox"] {
+  width: auto;
+  padding: 0;
+  margin: 0 6px 0 0;
+  border: none;
+}
+
+/* “show password/answer” rows below fields */
+.show-toggle {
+  font-size: 12px;
+  color: #333;
+  margin: -8px 0 12px; 
+}
+.show-toggle label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+.show-toggle input { vertical-align: middle; }
+
+/* buttons, links */
 button {
-    width: 100%;
-    padding: 10px;
-    background-color: #4caf50;
-    border: none;
-    border-radius: 5px;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
+  width: 100%;
+  padding: 10px;
+  background-color: #4caf50;
+  border: none;
+  border-radius: 5px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
 }
+button:disabled { background-color: #9e9e9e; cursor: not-allowed; }
+button:hover:enabled { background-color: #45a049; }
 
-button:disabled {
-    background-color: #9e9e9e;
-    cursor: not-allowed;
-}
+.link-text { text-align: center; margin-top: 10px; font-size: 14px; }
+.link-text a { color: #4caf50; text-decoration: none; }
+.link-text a:hover { text-decoration: underline; }
 
-button:hover:enabled {
-    background-color: #45a049;
-}
+/* password rules feedback */
+#passwordRules { font-size: 12px; margin: -10px 0 15px; padding-left: 20px; }
+#passwordRules li { margin-bottom: 4px; }
 
-.link-text {
-    text-align: center;
-    margin-top: 10px;
-    font-size: 14px;
-}
-
-.link-text a {
-    color: #4caf50;
-    text-decoration: none;
-}
-
-.link-text a:hover {
-    text-decoration: underline;
-}
-
-/* Password rules feedback */
-#passwordRules {
-    font-size: 12px;
-    margin: -10px 0 15px;
-    padding-left: 20px;
-}
-
-#passwordRules li {
-    margin-bottom: 4px;
-}
-
-/* Hide errors initially */
-#passwordRules li,
-#matchMessage {
-    display: none;
-}
-
-.valid {
-    color: green;
-}
-
-.invalid {
-    color: red;
-}
-
-#matchMessage {
-    font-size: 12px;
-    margin-top: -10px;
-}
+/* hidden until needed */
+#passwordRules li, #matchMessage { display: none; }
+.valid { color: green; }
+.invalid { color: red; }
+#matchMessage { font-size: 12px; margin-top: -10px; }
