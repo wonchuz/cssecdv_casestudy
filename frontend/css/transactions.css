@@ -1,0 +1,64 @@
+/* css/transactions.css */
+
+.form-container-transactions {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.page-title {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.transactions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.transaction-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background-color: #f9f9f9;
+}
+
+.transaction-details {
+    flex-grow: 1;
+}
+
+.transaction-info {
+    margin: 0;
+    font-size: 1.1em;
+}
+
+.transaction-book {
+    margin: 5px 0 0;
+    font-size: 0.95em;
+    color: #666;
+}
+
+.transaction-date {
+    margin: 5px 0 0;
+    font-size: 0.85em;
+    color: #999;
+}
+
+/* Styles for different transaction types */
+.borrow-transaction {
+    border-left: 5px solid #28a745; /* Green for borrow */
+    padding-left: 10px;
+}
+
+.return-transaction {
+    border-left: 5px solid #dc3545; /* Red for return */
+    padding-left: 10px;
+}

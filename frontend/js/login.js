@@ -25,7 +25,7 @@ form.addEventListener('submit', function (e) {
       const user = data.user;
       if (user.role === "admin") {
         console.log(user.role);
-        window.location.href = "empty.html";
+        window.location.href = "admin.html";
       } else if (user.role === "librarian") {
         window.location.href = "empty.html";
       } else if (user.role === "member") { 

@@ -7,6 +7,7 @@ const app = express();
 // Import routes
 const bookRoutes = require("./routes/bookRoutes");
 const userRoutes = require("./routes/userRoutes");
+const transactionRoutes = require("./routes/transactionRoutes");
 
 // Middleware
 app.use(cors());
@@ -20,8 +21,9 @@ mongoose.connect(process.env.MONGO_URI, {
   .catch(err => console.error("MongoDB connection error:", err));
 
 // ===== Routes =====
-app.use("/books", bookRoutes); // All routes in bookRoutes will be prefixed with /books
-app.use("/auth", userRoutes);  // All routes in userRoutes will be prefixed with /auth (e.g., /auth/login)
+app.use("/books", bookRoutes);
+app.use("/auth", userRoutes);  
+app.use("/transactions", transactionRoutes);
 
 // Optional: Basic root route
 app.get("/", (req, res) => {
