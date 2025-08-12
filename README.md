@@ -17,30 +17,23 @@ MONGO_URI=mongodb://127.0.0.1:27017/library
 ---
 
 ### 3. Install Dependencies and Seed the Database
-Navigate to the backend folder and install required packages:
+Install required packages (root folder):
+
+```
+npm install
+```
+
+### 4. Seed then start the server
 
 ```
 cd backend
-npm install
 node seed.js
-```
-
-Alternatively, from root:
-
-```
-node backend/seed.js
-```
-
----
-
-### 4. Start the Server
-
-```
 node server.js
 ```
 
 Alternatively, from root:
 
 ```
+node backend/seed.js
 node backend/server.js
 ```
