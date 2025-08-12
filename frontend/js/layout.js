@@ -2,6 +2,9 @@
 const usernameEl = document.getElementById("username");
 const dropdownMenu = document.getElementById("userDropdown");
 
+const user = JSON.parse(localStorage.getItem("user"));
+const userId = user?.id;
+
 usernameEl.addEventListener("click", () => {
   dropdownMenu.classList.toggle("show");
 });
@@ -33,7 +36,7 @@ navItems.forEach(item => {
     } else if (item.dataset.tab === "profile") {
       booksContainer.style.display = "none";
       profileContainer.style.display = "block";
-      loadBorrowedBooks(localStorage.getItem("userId"));
+      loadBorrowedBooks(userId);
     }
   });
 });

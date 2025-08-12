@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Book = require("../models/Book");
 const User = require("../models/User"); 
+const Transaction = require("../models/Transaction");
 const mongoose = require("mongoose");
 
 // GET all books
@@ -34,19 +35,16 @@ router.post("/borrow/:id", async (req, res) => {
     return res.status(400).json({ error: "User ID is required" });
   }
 
-  // Validate userId format
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     return res.status(400).json({ error: "Invalid User ID format" });
   }
 
   try {
-    // Check if user exists
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Find the book
     const book = await Book.findById(id);
     if (!book) {
       return res.status(404).json({ error: "Book not found" });
@@ -55,12 +53,20 @@ router.post("/borrow/:id", async (req, res) => {
       return res.status(400).json({ error: "Book already borrowed" });
     }
 
-    // Borrow the book
+    // Update book status
     book.borrowed = true;
     book.borrowedBy = userId;
     await book.save();
 
-    res.json({ message: "Book borrowed successfully", book });
+    // Create a new borrow transaction record
+    const transaction = new Transaction({
+      book: book._id,
+      user: userId,
+      type: "borrow"
+    });
+    await transaction.save();
+
+    res.json({ message: "Book borrowed successfully", book, transaction });
   } catch (err) {
     console.error("Error borrowing book:", err);
     res.status(500).json({ error: "Failed to borrow book" });
@@ -82,11 +88,20 @@ router.post("/return/:id", async (req, res) => {
       return res.status(400).json({ error: "You cannot return this book" });
     }
 
+    // Update book status
     book.borrowed = false;
     book.borrowedBy = null;
     await book.save();
 
-    res.json({ message: "Book returned successfully", book });
+    // Create a new return transaction record
+    const transaction = new Transaction({
+      book: book._id,
+      user: userId,
+      type: "return"
+    });
+    await transaction.save();
+
+    res.json({ message: "Book returned successfully", book, transaction });
   } catch (err) {
     res.status(500).json({ error: "Failed to return book" });
   }

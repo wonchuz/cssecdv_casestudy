@@ -1,6 +1,3 @@
-const user = JSON.parse(localStorage.getItem("user"));
-const userId = user?.id;
-
 function loadBooks() {
   fetch("http://localhost:3000/books")
     .then((res) => res.json())
@@ -51,6 +48,9 @@ function loadBorrowedBooks(userId) {
   fetch(`http://localhost:3000/books/mybooks/${userId}`)
     .then((res) => res.json())
     .then((books) => {
+      console.log("called" + userId);
+      console.log(userId);
+
       if (books.length === 0) {
         userList.innerHTML += "<p>You have not borrowed any books.</p>";
         return;
@@ -119,9 +119,6 @@ function returnBook(id) {
 
 
 loadBooks();
-// TODO:
-// ensure that this is secure??
-// also set userId upon login
-// might no longer user "localStorage" once made secure
 console.log(user);
+console.log(userId);
 loadBorrowedBooks(userId);
