@@ -20,6 +20,8 @@ window.addEventListener("click", (e) => {
 const navItems = document.querySelectorAll(".nav-item");
 const booksContainer = document.getElementById("booksContainer");
 const profileContainer = document.getElementById("profileContainer");
+const mBContainer = document.getElementById("manageBooksContainer");
+const mRContainer = document.getElementById("manageReservationsContainer");
 
 navItems.forEach(item => {
   item.addEventListener("click", () => {
@@ -31,12 +33,28 @@ navItems.forEach(item => {
     // Switch content
     if (item.dataset.tab === "books") {
       booksContainer.style.display = "block";
+      mBContainer.style.display = "none";
+      mRContainer.style.display = "none";
       profileContainer.style.display = "none";
       loadBooks();
+    } else if (item.dataset.tab === "manage-books") {
+      booksContainer.style.display = "none";
+      mBContainer.style.display = "block";
+      mRContainer.style.display = "none";
+      profileContainer.style.display = "none";
+      // TODO: Load manage books logic here
+    } else if (item.dataset.tab === "manage-reservations") {
+      booksContainer.style.display = "none";
+      mBContainer.style.display = "none";
+      mRContainer.style.display = "block";
+      profileContainer.style.display = "none";
+      // TODO: Load reservations logic here
     } else if (item.dataset.tab === "profile") {
       booksContainer.style.display = "none";
+      mBContainer.style.display = "none";
+      mRContainer.style.display = "none";
       profileContainer.style.display = "block";
-      loadBorrowedBooks(userId);
+      loadBorrowedBooks(localStorage.getItem("userId"));
     }
   });
 });
@@ -52,3 +70,4 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
   alert("Logging out...");
   window.location.href = "/login.html";
 });
+
