@@ -48,7 +48,7 @@ function loadBorrowedBooks(userId) {
   }
 
   // Then fetch borrowed books
-  fetch(`http://localhost:3000/mybooks/${userId}`)
+  fetch(`http://localhost:3000/books/mybooks/${userId}`)
     .then((res) => res.json())
     .then((books) => {
       if (books.length === 0) {
@@ -84,7 +84,7 @@ function borrowBook(id) {
     return;
   }
 
-  fetch(`http://localhost:3000/borrow/${id}`, {
+  fetch(`http://localhost:3000/books/borrow/${id}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId })
@@ -103,7 +103,7 @@ function returnBook(id) {
     return;
   }
   
-  fetch(`http://localhost:3000/return/${id}`, {
+  fetch(`http://localhost:3000/books/return/${id}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId })
