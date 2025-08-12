@@ -20,9 +20,17 @@ form.addEventListener('submit', function (e) {
 
       // Store user data in localStorage so you can use it later
       localStorage.setItem("user", JSON.stringify(data.user));
-
       alert("Login successful!");
-      window.location.href = "booking.html";
+
+      const user = data.user;
+      if (user.role === "admin") {
+        console.log(user.role);
+        window.location.href = "empty.html";
+      } else if (user.role === "librarian") {
+        window.location.href = "empty.html";
+      } else if (user.role === "member") { 
+        window.location.href = "booking.html";
+      }
     })
     .catch(err => {
       console.error("Login failed:", err);

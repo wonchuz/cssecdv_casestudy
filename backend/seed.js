@@ -2,22 +2,9 @@
 require("dotenv").config({ path: __dirname + "/../.env" });
 const mongoose = require("mongoose");
 
-// ===== Schemas =====
-const userSchema = new mongoose.Schema({
-  fullName: String,
-  email: { type: String, unique: true },
-  username: { type: String, unique: true },
-  password: String
-});
-const User = mongoose.model("User", userSchema);
-
-const bookSchema = new mongoose.Schema({
-  title: String,
-  author: String,
-  borrowed: { type: Boolean, default: false },
-  borrowedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null }
-});
-const Book = mongoose.model("Book", bookSchema);
+// ===== Import Schemas =====
+const User = require("./models/User");
+const Book = require("./models/Book");
 
 // ===== Seed Function =====
 mongoose.connect(process.env.MONGO_URI, {
@@ -35,13 +22,22 @@ mongoose.connect(process.env.MONGO_URI, {
       fullName: "Alice Johnson",
       email: "alice@example.com",
       username: "alice",
-      password: "password123"
+      password: "password123",
+      role: "member"
     },
     {
       fullName: "Bob Smith",
       email: "bob@example.com",
       username: "bob",
-      password: "mypassword"
+      password: "mypassword",
+      role: "member"
+    },
+    {
+      fullName: "Jane Doe",
+      email: "jane@example.com",
+      username: "jane",
+      password: "mypassword123",
+      role: "admin"
     }
   ]);
 
