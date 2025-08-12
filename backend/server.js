@@ -19,7 +19,12 @@ const userSchema = new mongoose.Schema({
   fullName: String,
   email: { type: String, unique: true },
   username: { type: String, unique: true },
-  password: String
+  password: String,
+  role: { 
+    type: String, 
+    enum: ["admin", "librarian", "member"], 
+    default: "member" 
+  }
 });
 const User = mongoose.model("User", userSchema);
 
@@ -54,23 +59,7 @@ app.get("/mybooks/:userId", async (req, res) => {
   }
 });
 
-// // GET user profile info
-// app.get("/users/:userId", async (req, res) => {
-//   try {
-//     const user = await User.findById(req.params.userId)
-//       .select("fullName email username");
-    
-//     if (!user) {
-//       return res.status(404).json({ error: "User not found" });
-//     }
-
-//     res.json(user);
-//   } catch (err) {
-//     console.error("Error fetching user profile:", err);
-//     res.status(500).json({ error: "Failed to fetch user profile" });
-//   }
-// });
-
+// NOTE: Admin only has read access to transactions
 // POST borrow book
 app.post("/borrow/:id", async (req, res) => {
   const { id } = req.params;
@@ -167,7 +156,7 @@ app.post("/login", async (req, res) => {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
-        username: user.username
+        username: user.username //TODO, determine if this should be updated with the new roles
       }
     });
   } catch (err) {
