@@ -12,6 +12,8 @@
       navItems.forEach((i) => i.classList.remove("active"));
       item.classList.add("active");
 
+      const user = await loadMe();
+
       if (item.dataset.tab === "books") {
         if (booksContainer) booksContainer.style.display = "block";
         if (profileContainer) profileContainer.style.display = "none";
@@ -28,7 +30,7 @@
         if (booksContainer) booksContainer.style.display = "none";
         if (profileContainer) profileContainer.style.display = "none";
         if (transactionsContainer) transactionsContainer.style.display = "block";
-        if (typeof window.loadBorrowedBooks === "function") window.loadAllTransactions();
+        if (typeof window.loadAllTransactions === "function") window.loadAllTransactions();
       }
     });
   });

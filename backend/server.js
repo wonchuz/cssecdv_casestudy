@@ -16,6 +16,7 @@ const onFinished = require("on-finished");
 const { auditLogger, requestLogger, errorLogger } = require("./winston-logger");
 const userRoutes = require("./routes/userRoutes");
 const bookRoutes = require("./routes/bookRoutes");
+const transactionRoutes = require("./routes/transactionRoutes");
 
 const MONGO_URL = process.env.MONGO_URL || process.env.MONGO_URI;
 if (!MONGO_URL) {
@@ -81,6 +82,7 @@ app.use("/frontend", express.static(path.join(__dirname, "../frontend")));
 // routes
 app.use("/api/auth", userRoutes);
 app.use("/api/books", bookRoutes);
+app.use("/api/transactions", transactionRoutes);
 
 // redirect root to the login page; since no index
 app.get("/", (req, res) => {

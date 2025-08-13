@@ -58,14 +58,14 @@
         }
       }
 
-      const transactions = document.getElementById("transactions");
-      if (transactions) {
-        if (me.role === "admin") {
-          transactions.style.display = "block";
-        } else {
-          transactions.style.display = "none";
+      const transactionsTab = document.querySelector('[data-tab="transactions"]');
+        if (transactionsTab) {
+          if (me.role === "admin") {
+            transactionsTab.style.display = "block";
+          } else {
+            transactionsTab.style.display = "none";
+          }
         }
-      }
       return me;
     } catch {
       window.location.href = "/frontend/html/login.html";
@@ -101,6 +101,7 @@
     const userList = document.getElementById("userList");
     if (!userList) return;
     userList.innerHTML = "";
+
     try {
       const me = await api("/auth/me");
       userList.innerHTML += `
@@ -111,25 +112,26 @@
           <p><strong>Last Login:</strong> ${me.lastLoginAt ? new Date(me.lastLoginAt).toLocaleString() : "—"}</p>
         </div>
         <hr/>
+        <h3 style="margin:10px 0;">Borrowed Books</h3>
       `;
+
       const books = await api("/books/mine");
       if (!books.length) {
         userList.innerHTML += "<p>You have not borrowed any books.</p>";
         return;
       }
+
       books.forEach((book) => {
         const div = document.createElement("div");
         div.className = "book";
         div.innerHTML = `
           <div class="title">${book.title}</div>
           <div class="author">${book.author}</div>
-          <button data-id="${book._id}">Return Book</button>
         `;
-        div.querySelector("button").addEventListener("click", () => returnBook(book._id));
         userList.appendChild(div);
       });
     } catch {
-      userList.innerHTML += "<p>Error loading borrowed books</p>";
+      userList.innerHTML = "<p>Error loading borrowed books</p>";
     }
   }
 
@@ -222,6 +224,7 @@
   window.loadMe = loadMe;
   window.loadBooks = loadBooks;
   window.loadBorrowedBooks = loadBorrowedBooks;
+  window.loadAllTransactions = loadAllTransactions;
 
   // initial load
   (async () => { await loadMe(); await loadBooks(); await loadBorrowedBooks(); await loadAllTransactions();})();

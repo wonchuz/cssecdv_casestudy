@@ -2,6 +2,7 @@ const express = require("express");
 const { body, param, validationResult } = require("express-validator");
 const { requireAuth, allowRoles } = require("../authz");
 const Book = require("../models/Book");
+const Transaction = require("../models/Transaction");
 const { auditLogger } = require("../winston-logger");
 
 const router = express.Router();
@@ -92,6 +93,14 @@ router.post(
       b.borrowed = true;
       b.borrowedBy = req.session.user.id;
       await b.save();
+      
+      const transaction = new Transaction({
+        book: b._id,
+        user: req.session.user.id,
+        type: "borrow",
+      });
+      await transaction.save();
+
       auditLogger.info({
         evt: "BOOK_BORROW",
         id: b._id.toString(),
@@ -116,10 +125,10 @@ router.post(
       if (!b) return res.status(404).send("Not found.");
 
       const user = req.session.user || {};
-      const isOwner = b.borrowedBy?.toString() === user.id;
-      const isPrivileged = ["admin", "librarian"].includes(user.role);
+      const isLibrarian = ["librarian"].includes(user.role);
+      const borrowedBy = b.borrowedBy;
 
-      if (!b.borrowed || (!isOwner && !isPrivileged)) {
+      if (!b.borrowed || !isLibrarian) {
         auditLogger.warn({
           evt: "BOOK_RETURN_FAIL",
           reason: "forbidden",
@@ -131,6 +140,15 @@ router.post(
       b.borrowed = false;
       b.borrowedBy = null;
       await b.save();
+
+      const transaction = new Transaction({
+        book: b._id,
+        user: borrowedBy,
+        type: "return",
+        librarian: req.session.user.id
+      });
+      await transaction.save();
+
       auditLogger.info({
         evt: "BOOK_RETURN",
         id: b._id.toString(),
