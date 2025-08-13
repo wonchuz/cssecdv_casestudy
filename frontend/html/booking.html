@@ -14,6 +14,7 @@
       <div class="username" id="username">Loading...</div>
       <div class="nav-item active" data-tab="books">Available Books</div>
       <div class="nav-item" data-tab="profile">Profile</div>
+      <div class="nav-item" data-tab="transactions">Transactions</div>
     </nav>
 
     <main class="content" id="content">
@@ -74,6 +75,15 @@
           <button id="logoutBtn" style="width:auto; margin-top:10px; background-color:#000;">Logout</button>
         </div>
       </div>
+
+      <!-- transactions (hidden unless admin) -->
+      <div class="form-container-transactions" id="transactionsContainer" style="display:block;">
+          <h2 class="page-title">Transactions</h2>
+          <div class="transaction-details" id="transactionList">
+              <p>Loading transactions...</p>
+          </div>
+      </div>
+
     </main>
   </div>
 

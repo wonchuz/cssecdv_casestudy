@@ -57,6 +57,15 @@
           wrap.style.display = "none";
         }
       }
+
+      const transactions = document.getElementById("transactions");
+      if (transactions) {
+        if (me.role === "admin") {
+          transactions.style.display = "block";
+        } else {
+          transactions.style.display = "none";
+        }
+      }
       return me;
     } catch {
       window.location.href = "/frontend/html/login.html";
@@ -124,6 +133,53 @@
     }
   }
 
+  async function loadAllTransactions() {
+  const transactionList = document.getElementById("transactionList");
+  if (!transactionList) return;
+  transactionList.innerHTML = "";
+
+  try {
+    // Fetch all transactions from the new API endpoint
+    const transactions = await api("/transactions");
+
+    if (!transactions.length) {
+      transactionList.innerHTML = "<p>No transactions found in the database.</p>";
+      return;
+    }
+
+    // Display a title for the list
+    transactionList.innerHTML = "<h2>All Transaction History</h2>";
+
+    transactions.forEach((transaction) => {
+      const div = document.createElement("div");
+      div.className = "transaction";
+      
+      const transactionDate = new Date(transaction.timestamp).toLocaleString();
+      const transactionTypeClass = transaction.type === 'borrow' ? 'borrowed-transaction' : 'returned-transaction';
+
+      div.innerHTML = `
+        <div class="transaction-details ${transactionTypeClass}">
+          <div class="transaction-info">
+            <strong>${transaction.type === 'borrow' ? 'Borrowed' : 'Returned'}</strong>
+            by <strong>${transaction.user.username || '—'}</strong>
+          </div>
+          <div class="transaction-book">
+            Book: <em>${transaction.book.title}</em> by ${transaction.book.author}
+          </div>
+          <div class="transaction-date">
+            Date: ${transactionDate}
+          </div>
+        </div>
+      `;
+      transactionList.appendChild(div);
+    });
+
+  } catch (error) {
+    console.error("Error loading transactions:", error);
+    transactionList.innerHTML = "<p>Error loading transaction history.</p>";
+  }
+}
+
   async function borrowBook(id) {
     try {
       await api(`/books/${id}/borrow`, { method: "POST" });
@@ -168,5 +224,5 @@
   window.loadBorrowedBooks = loadBorrowedBooks;
 
   // initial load
-  (async () => { await loadMe(); await loadBooks(); await loadBorrowedBooks(); })();
+  (async () => { await loadMe(); await loadBooks(); await loadBorrowedBooks(); await loadAllTransactions();})();
 })();

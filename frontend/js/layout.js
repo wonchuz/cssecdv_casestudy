@@ -5,6 +5,7 @@
   const navItems = document.querySelectorAll(".nav-item");
   const booksContainer = document.getElementById("booksContainer");
   const profileContainer = document.getElementById("profileContainer");
+  const transactionsContainer = document.getElementById("transactionsContainer");
 
   navItems.forEach((item) => {
     item.addEventListener("click", async () => {
@@ -14,13 +15,20 @@
       if (item.dataset.tab === "books") {
         if (booksContainer) booksContainer.style.display = "block";
         if (profileContainer) profileContainer.style.display = "none";
+        if (transactionsContainer) transactionsContainer.style.display = "none";
         if (typeof window.loadBooks === "function") window.loadBooks();
       } else if (item.dataset.tab === "profile") {
         if (booksContainer) booksContainer.style.display = "none";
         if (profileContainer) profileContainer.style.display = "block";
+        if (transactionsContainer) transactionsContainer.style.display = "none";
         if (typeof window.loadBorrowedBooks === "function") window.loadBorrowedBooks();
         // refresh security question when switching to profile
         await loadSecurityQuestion();
+      } else if (item.dataset.tab === "transactions") {
+        if (booksContainer) booksContainer.style.display = "none";
+        if (profileContainer) profileContainer.style.display = "none";
+        if (transactionsContainer) transactionsContainer.style.display = "block";
+        if (typeof window.loadBorrowedBooks === "function") window.loadAllTransactions();
       }
     });
   });
