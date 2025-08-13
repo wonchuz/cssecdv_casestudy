@@ -60,15 +60,18 @@
 
       const transactionsTab = document.querySelector('[data-tab="transactions"]');
       const rolesTab = document.querySelector('[data-tab="roles"]');
-        if (transactionsTab || rolesTab) {
-          if (me.role === "admin") {
-            transactionsTab.style.display = "block";
-            rolesTab.style.display = "block";
-          } else {
-            transactionsTab.style.display = "none";
-            rolesTab.style.display = "";
-          }
+      if (transactionsTab || rolesTab) {
+        if (me.role === "admin") {
+          transactionsTab.style.display = "block";
+          rolesTab.style.display = "block";
+        } else {
+          transactionsTab.style.display = "none";
+          rolesTab.style.display = "none";
         }
+      }
+
+      
+
       return me;
     } catch {
       window.location.href = "/frontend/html/login.html";
