@@ -123,6 +123,27 @@ schema.methods.setPassword = async function setPassword(plain) {
   this.passwordChangedAt = new Date();
 };
 
+schema.methods.changeRole = async function(newRole, actorId) {
+  const validRoles = ["admin", "customer", "librarian"];
+
+  if (!validRoles.includes(newRole)) {
+    const err = new Error("Invalid role provided.");
+    err.code = "ROLE_INVALID";
+    throw err;
+  }
+
+  if (this._id.equals(actorId)) {
+    const err = new Error("Cannot change your own role.");
+    err.code = "ROLE_SELF_CHANGE";
+    throw err;
+  }
+
+  this.role = newRole;
+  await this.save();
+  
+  return this;
+};
+
 schema.virtual("isLocked").get(function() {
   return !!(this.lockUntil && this.lockUntil > Date.now());
 });

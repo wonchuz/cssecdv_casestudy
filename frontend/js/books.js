@@ -59,11 +59,14 @@
       }
 
       const transactionsTab = document.querySelector('[data-tab="transactions"]');
-        if (transactionsTab) {
+      const rolesTab = document.querySelector('[data-tab="roles"]');
+        if (transactionsTab || rolesTab) {
           if (me.role === "admin") {
             transactionsTab.style.display = "block";
+            rolesTab.style.display = "block";
           } else {
             transactionsTab.style.display = "none";
+            rolesTab.style.display = "";
           }
         }
       return me;
@@ -136,51 +139,106 @@
   }
 
   async function loadAllTransactions() {
-  const transactionList = document.getElementById("transactionList");
-  if (!transactionList) return;
-  transactionList.innerHTML = "";
+    const transactionList = document.getElementById("transactionList");
+    if (!transactionList) return;
+    transactionList.innerHTML = "";
+
+    try {
+      const logs = await api("/auth/logs");
+
+      if (!Array.isArray(logs) || !logs.length) {
+        transactionList.innerHTML = "<p>No log entries found.</p>";
+        return;
+      }
+      
+      // Filter out log entries where evt is 'REQ' or 'RESP'
+      const filteredLogs = logs.filter(log => {
+          // We'll check both top-level 'evt' and nested 'message.evt' for robustness
+          const eventType = log.evt || (log.message ? log.message.evt : '');
+          return eventType !== 'REQ' && eventType !== 'RESP';
+      });
+
+      if (filteredLogs.length === 0) {
+        transactionList.innerHTML = "<p>No other log entries found.</p>";
+        return;
+      }
+
+      filteredLogs.forEach(log => {
+        const div = document.createElement("div");
+        div.className = "log-entry";
+
+        const logMessage = JSON.stringify(log, null, 2);
+
+        div.innerHTML = `
+          <div class="log-details">
+            <pre>${logMessage}</pre>
+          </div>
+        `;
+        transactionList.appendChild(div);
+      });
+
+    } catch (error) {
+      console.error("Error loading transactions:", error);
+      transactionList.innerHTML = "<p>Error loading log history.</p>";
+    }
+  }
+
+async function loadRoles() {
+  const roleList = document.getElementById("roleList");
+  if (!roleList) return;
+  roleList.innerHTML = "";
 
   try {
-    // Fetch all transactions from the new API endpoint
-    const transactions = await api("/transactions");
+    const me = await api("/auth/me");
+    let users = await api("/auth/users");
 
-    if (!transactions.length) {
-      transactionList.innerHTML = "<p>No transactions found in the database.</p>";
+    users = users.filter(user => user._id !== me.id);
+
+    if (users.length === 0) {
+      roleList.innerHTML = "<p>No other users found.</p>";
       return;
     }
 
-    // Display a title for the list
-    transactionList.innerHTML = "<h2>All Transaction History</h2>";
+    roleList.innerHTML += `
+      <div class="user-roles-header">
+        <h3>User Roles</h3>
+      </div>
+    `;
 
-    transactions.forEach((transaction) => {
+    users.forEach(user => {
       const div = document.createElement("div");
-      div.className = "transaction";
-      
-      const transactionDate = new Date(transaction.timestamp).toLocaleString();
-      const transactionTypeClass = transaction.type === 'borrow' ? 'borrowed-transaction' : 'returned-transaction';
-
+      div.className = "user-role-item";
       div.innerHTML = `
-        <div class="transaction-details ${transactionTypeClass}">
-          <div class="transaction-info">
-            <strong>${transaction.type === 'borrow' ? 'Borrowed' : 'Returned'}</strong>
-            by <strong>${transaction.user.username || '—'}</strong>
+        <div class="user-role-content">
+          <div class="user-details">
+            <p><strong>Username:</strong> ${user.username || "—"}</p>
+            <p><strong>Email:</strong> ${user.email}</p>
+            <p><strong>Current Role:</strong> ${user.role}</p>
           </div>
-          <div class="transaction-book">
-            Book: <em>${transaction.book.title}</em> by ${transaction.book.author}
-          </div>
-          <div class="transaction-date">
-            Date: ${transactionDate}
+          <div class="role-actions">
+            <button class="role-btn ${user.role === 'admin' ? 'current-role-disabled' : ''}" data-user-id="${user._id}" data-role="admin" ${user.role === 'admin' ? 'disabled' : ''}>Admin</button>
+            <button class="role-btn ${user.role === 'librarian' ? 'current-role-disabled' : ''}" data-user-id="${user._id}" data-role="librarian" ${user.role === 'librarian' ? 'disabled' : ''}>Librarian</button>
+            <button class="role-btn ${user.role === 'customer' ? 'current-role-disabled' : ''}" data-user-id="${user._id}" data-role="customer" ${user.role === 'customer' ? 'disabled' : ''}>Customer</button>
           </div>
         </div>
       `;
-      transactionList.appendChild(div);
+      roleList.appendChild(div);
     });
 
-  } catch (error) {
-    console.error("Error loading transactions:", error);
-    transactionList.innerHTML = "<p>Error loading transaction history.</p>";
+    // Add event listeners for the new role buttons
+    document.querySelectorAll(".role-btn").forEach(button => {
+      button.addEventListener("click", (event) => {
+        const userId = event.target.dataset.userId;
+        const newRole = event.target.dataset.role;
+        changeRole(userId, newRole);
+      });
+    });
+
+    } catch (error) {
+      console.error("Error loading user roles:", error);
+      roleList.innerHTML = "<p>Error loading user roles.</p>";
+    }
   }
-}
 
   async function borrowBook(id) {
     try {
@@ -197,6 +255,30 @@
       await loadBorrowedBooks();
     } catch (e) {
       alert(e.message || "Return failed");
+    }
+  }
+
+  async function changeRole(userId, newRole) {
+    try {
+      const res = await api(`/auth/change-role/${userId}`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ role: newRole }),
+      });
+      
+      // Assuming your API returns a JSON object like { ok: true } on success
+      if (res.message === "Role updated successfully.") {
+        alert(`Successfully changed role to ${newRole}`);
+        loadRoles(); // Reload the list to show the change
+      } else {
+        // If the message is anything else, it's likely an error.
+        alert(`Failed to change role: ${res.message}`);
+      }
+    } catch (error) {
+      console.error("Role change failed:", error);
+      alert("An error occurred while changing the role.");
     }
   }
 
@@ -225,6 +307,7 @@
   window.loadBooks = loadBooks;
   window.loadBorrowedBooks = loadBorrowedBooks;
   window.loadAllTransactions = loadAllTransactions;
+  window.loadRoles = loadRoles;
 
   // initial load
   (async () => { await loadMe(); await loadBooks(); await loadBorrowedBooks(); await loadAllTransactions();})();
