@@ -1,110 +1,148 @@
 const express = require("express");
-const router = express.Router();
+const { body, param, validationResult } = require("express-validator");
+const { requireAuth, allowRoles } = require("../authz");
 const Book = require("../models/Book");
-const User = require("../models/User"); 
-const Transaction = require("../models/Transaction");
-const mongoose = require("mongoose");
+const { auditLogger } = require("../winston-logger");
 
-// GET all books
-router.get("/", async (req, res) => {
+const router = express.Router();
+
+// All book routes require auth
+router.use(requireAuth);
+
+// helper: log validation failures
+function validate(req, res, next) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    auditLogger.warn({
+      evt: "VALIDATION_FAIL",
+      where: "books",
+      details: errors.array(),
+      ip: req.ip,
+    });
+    return res.status(400).send("Invalid input.");
+  }
+  next();
+}
+
+// Create book — ADMIN or Librarian only
+router.post(
+  "/",
+  allowRoles("admin", "librarian"),
+  body("title").isString().trim().isLength({ min: 1, max: 200 }),
+  body("author").isString().trim().isLength({ min: 1, max: 200 }),
+  validate,
+  async (req, res, next) => {
+    try {
+      const b = await Book.create({
+        title: req.body.title,
+        author: req.body.author,
+      });
+      auditLogger.info({
+        evt: "BOOK_CREATE",
+        by: req.session.user.username || req.session.user.email,
+        id: b._id.toString(),
+        ip: req.ip,
+      });
+      res.status(201).json(b);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// List all books
+router.get("/", async (req, res, next) => {
   try {
-    const books = await Book.find();
+    const books = await Book.find().lean();
     res.json(books);
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch books" });
+    next(err);
   }
 });
 
-// GET books borrowed by a specific user
-router.get("/mybooks/:userId", async (req, res) => {
+// List current user's borrowed books
+router.get("/mine", async (req, res, next) => {
   try {
-    const books = await Book.find({ borrowedBy: req.params.userId });
+    const uid = req.session.user.id;
+    const books = await Book.find({ borrowed: true, borrowedBy: uid }).lean();
     res.json(books);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to fetch borrowed books" });
+    next(err);
   }
 });
 
-// POST borrow book
-router.post("/borrow/:id", async (req, res) => {
-  const { id } = req.params;
-  const { userId } = req.body;
-
-  if (!userId) {
-    return res.status(400).json({ error: "User ID is required" });
+// Borrow
+router.post(
+  "/:id/borrow",
+  param("id").isMongoId(),
+  validate,
+  async (req, res, next) => {
+    try {
+      const b = await Book.findById(req.params.id);
+      if (!b) return res.status(404).send("Not found.");
+      if (b.borrowed) {
+        auditLogger.warn({
+          evt: "BOOK_BORROW_FAIL",
+          reason: "already_borrowed",
+          id: b._id.toString(),
+          ip: req.ip,
+        });
+        return res.status(409).send("Book already borrowed.");
+      }
+      b.borrowed = true;
+      b.borrowedBy = req.session.user.id;
+      await b.save();
+      auditLogger.info({
+        evt: "BOOK_BORROW",
+        id: b._id.toString(),
+        by: req.session.user.username || req.session.user.email,
+        ip: req.ip,
+      });
+      res.json({ ok: true });
+    } catch (err) {
+      next(err);
+    }
   }
+);
 
-  if (!mongoose.Types.ObjectId.isValid(userId)) {
-    return res.status(400).json({ error: "Invalid User ID format" });
+// Return (borrower or admin)
+router.post(
+  "/:id/return",
+  param("id").isMongoId(),
+  validate,
+  async (req, res, next) => {
+    try {
+      const b = await Book.findById(req.params.id);
+      if (!b) return res.status(404).send("Not found.");
+
+      const user = req.session.user || {};
+      const isOwner = b.borrowedBy?.toString() === user.id;
+      const isPrivileged = ["admin", "librarian"].includes(user.role);
+
+      if (!b.borrowed || (!isOwner && !isPrivileged)) {
+        auditLogger.warn({
+          evt: "BOOK_RETURN_FAIL",
+          reason: "forbidden",
+          id: b._id.toString(),
+          ip: req.ip,
+        });
+        return res.status(403).send("Forbidden.");
+      }
+      b.borrowed = false;
+      b.borrowedBy = null;
+      await b.save();
+      auditLogger.info({
+        evt: "BOOK_RETURN",
+        id: b._id.toString(),
+        by: user.username || user.email,
+        role: user.role,
+        ip: req.ip,
+      });
+      res.json({ ok: true });
+    } catch (err) {
+      next(err);
+    }
   }
-
-  try {
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    const book = await Book.findById(id);
-    if (!book) {
-      return res.status(404).json({ error: "Book not found" });
-    }
-    if (book.borrowed) {
-      return res.status(400).json({ error: "Book already borrowed" });
-    }
-
-    // Update book status
-    book.borrowed = true;
-    book.borrowedBy = userId;
-    await book.save();
-
-    // Create a new borrow transaction record
-    const transaction = new Transaction({
-      book: book._id,
-      user: userId,
-      type: "borrow"
-    });
-    await transaction.save();
-
-    res.json({ message: "Book borrowed successfully", book, transaction });
-  } catch (err) {
-    console.error("Error borrowing book:", err);
-    res.status(500).json({ error: "Failed to borrow book" });
-  }
-});
-
-// POST return book
-router.post("/return/:id", async (req, res) => {
-  const { id } = req.params;
-  const { userId } = req.body;
-
-  try {
-    const book = await Book.findById(id);
-
-    if (!book) {
-      return res.status(404).json({ error: "Book not found" });
-    }
-    if (!book.borrowed || book.borrowedBy.toString() !== userId) {
-      return res.status(400).json({ error: "You cannot return this book" });
-    }
-
-    // Update book status
-    book.borrowed = false;
-    book.borrowedBy = null;
-    await book.save();
-
-    // Create a new return transaction record
-    const transaction = new Transaction({
-      book: book._id,
-      user: userId,
-      type: "return"
-    });
-    await transaction.save();
-
-    res.json({ message: "Book returned successfully", book, transaction });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to return book" });
-  }
-});
+);
 
 module.exports = router;
