@@ -66,7 +66,7 @@
             rolesTab.style.display = "block";
           } else {
             transactionsTab.style.display = "none";
-            rolesTab.style.display = "";
+            rolesTab.style.display = "none";
           }
         }
       return me;
