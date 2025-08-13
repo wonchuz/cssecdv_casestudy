@@ -2,6 +2,7 @@ require("dotenv").config({ path: __dirname + "/../.env" });
 const mongoose = require("mongoose");
 const User = require("./models/User");
 const Book = require("./models/Book");
+const Transaction = require("./models/Transaction");
 
 // sec. qs
 const STRONG_QUESTIONS = [
@@ -27,7 +28,7 @@ async function run() {
 
   await mongoose.connect(mongoUrl);
   console.log("Connected. Clearing collections...");
-  await Promise.all([User.deleteMany({}), Book.deleteMany({})]);
+  await Promise.all([User.deleteMany({}), Book.deleteMany({}), Transaction.deleteMany({})]);
 
   // pre-demo users
   const users = [
