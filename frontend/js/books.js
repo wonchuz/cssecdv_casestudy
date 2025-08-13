@@ -144,16 +144,12 @@
   transactionList.innerHTML = "";
 
   try {
-    // Fetch all transactions from the new API endpoint
     const transactions = await api("/transactions");
 
     if (!transactions.length) {
       transactionList.innerHTML = "<p>No transactions found in the database.</p>";
       return;
     }
-
-    // Display a title for the list
-    transactionList.innerHTML = "<h2>All Transaction History</h2>";
 
     transactions.forEach((transaction) => {
       const div = document.createElement("div");
