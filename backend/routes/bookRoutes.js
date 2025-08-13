@@ -2,7 +2,6 @@ const express = require("express");
 const { body, param, validationResult } = require("express-validator");
 const { requireAuth, allowRoles } = require("../authz");
 const Book = require("../models/Book");
-const Transaction = require("../models/Transaction");
 const { auditLogger } = require("../winston-logger");
 
 const router = express.Router();
