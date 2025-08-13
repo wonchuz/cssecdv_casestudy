@@ -258,14 +258,38 @@ router.post("/logout", requireAuth, (req, res) => {
   res.send("Logged out.");
 });
 
+// // Admin-only log viewer
+// router.get("/logs", allowRoles("admin"), (req, res) => {
+//   const logPath = path.resolve(__dirname, "../logs/audit.log");
+//   try {
+//     const data = fs.readFileSync(logPath, "utf8");
+//     res.type("text/plain").send(data);
+//   } catch {
+//     res.type("text/plain").send("");
+//   }
+// });
+
 // Admin-only log viewer
 router.get("/logs", allowRoles("admin"), (req, res) => {
   const logPath = path.resolve(__dirname, "../logs/audit.log");
   try {
     const data = fs.readFileSync(logPath, "utf8");
-    res.type("text/plain").send(data);
-  } catch {
-    res.type("text/plain").send("");
+    const logEntries = data.split('\n')
+      .filter(line => line.trim() !== '') 
+      .map(line => {
+        try {
+          return JSON.parse(line);
+        } catch (e) {
+          console.error('Failed to parse log line:', line);
+          return null; 
+        }
+      })
+      .filter(entry => entry !== null); 
+
+    res.json(logEntries);
+  } catch (e) {
+    console.error('Error reading audit log:', e);
+    res.status(500).json({ error: "Failed to read log file." });
   }
 });
 
@@ -287,7 +311,7 @@ router.get("/users", allowRoles("admin"), async (req, res) => {
   }
 });
 
-// GET all users (Admin-only)
+// change roles (Admin-only)
 router.post(
   "/change-role/:id",
   allowRoles("admin"),

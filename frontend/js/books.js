@@ -139,47 +139,49 @@
   }
 
   async function loadAllTransactions() {
-  const transactionList = document.getElementById("transactionList");
-  if (!transactionList) return;
-  transactionList.innerHTML = "";
+    const transactionList = document.getElementById("transactionList");
+    if (!transactionList) return;
+    transactionList.innerHTML = "";
 
-  try {
-    const transactions = await api("/transactions");
+    try {
+      const logs = await api("/auth/logs");
 
-    if (!transactions.length) {
-      transactionList.innerHTML = "<p>No transactions found in the database.</p>";
-      return;
-    }
-
-    transactions.forEach((transaction) => {
-      const div = document.createElement("div");
-      div.className = "transaction";
+      if (!Array.isArray(logs) || !logs.length) {
+        transactionList.innerHTML = "<p>No log entries found.</p>";
+        return;
+      }
       
-      const transactionDate = new Date(transaction.timestamp).toLocaleString();
-      const transactionTypeClass = transaction.type === 'borrow' ? 'borrowed-transaction' : 'returned-transaction';
+      // Filter out log entries where evt is 'REQ' or 'RESP'
+      const filteredLogs = logs.filter(log => {
+          // We'll check both top-level 'evt' and nested 'message.evt' for robustness
+          const eventType = log.evt || (log.message ? log.message.evt : '');
+          return eventType !== 'REQ' && eventType !== 'RESP';
+      });
 
-      div.innerHTML = `
-        <div class="transaction-details ${transactionTypeClass}">
-          <div class="transaction-info">
-            <strong>${transaction.type === 'borrow' ? 'Borrowed' : 'Returned'}</strong>
-            by <strong>${transaction.user.username || '—'}</strong>
-          </div>
-          <div class="transaction-book">
-            Book: <em>${transaction.book.title}</em> by ${transaction.book.author}
-          </div>
-          <div class="transaction-date">
-            Date: ${transactionDate}
-          </div>
-        </div>
-      `;
-      transactionList.appendChild(div);
-    });
+      if (filteredLogs.length === 0) {
+        transactionList.innerHTML = "<p>No other log entries found.</p>";
+        return;
+      }
 
-  } catch (error) {
-    console.error("Error loading transactions:", error);
-    transactionList.innerHTML = "<p>Error loading transaction history.</p>";
+      filteredLogs.forEach(log => {
+        const div = document.createElement("div");
+        div.className = "log-entry";
+
+        const logMessage = JSON.stringify(log, null, 2);
+
+        div.innerHTML = `
+          <div class="log-details">
+            <pre>${logMessage}</pre>
+          </div>
+        `;
+        transactionList.appendChild(div);
+      });
+
+    } catch (error) {
+      console.error("Error loading transactions:", error);
+      transactionList.innerHTML = "<p>Error loading log history.</p>";
+    }
   }
-}
 
 async function loadRoles() {
   const roleList = document.getElementById("roleList");
