@@ -15,6 +15,7 @@
       <div class="nav-item active" data-tab="books">Available Books</div>
       <div class="nav-item" data-tab="profile">Profile</div>
       <div class="nav-item" data-tab="transactions">Transactions</div>
+      <div class="nav-item" data-tab="roles">Roles</div>
     </nav>
 
     <main class="content" id="content">
@@ -81,6 +82,14 @@
           <h2 class="page-title">Transactions</h2>
           <div class="transaction-details" id="transactionList">
               <p>Loading transactions...</p>
+          </div>
+      </div>
+
+      <!-- roles (hidden unless admin) -->
+      <div class="form-container-roles" id="rolesContainer" style="display:none;">
+          <h2 class="page-title">Roles</h2>
+          <div class="role-details" id="roleList">
+              <p>Loading roles...</p>
           </div>
       </div>
 

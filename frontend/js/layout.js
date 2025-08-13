@@ -6,6 +6,7 @@
   const booksContainer = document.getElementById("booksContainer");
   const profileContainer = document.getElementById("profileContainer");
   const transactionsContainer = document.getElementById("transactionsContainer");
+  const rolesContainer = document.getElementById("rolesContainer");
 
   navItems.forEach((item) => {
     item.addEventListener("click", async () => {
@@ -18,11 +19,13 @@
         if (booksContainer) booksContainer.style.display = "block";
         if (profileContainer) profileContainer.style.display = "none";
         if (transactionsContainer) transactionsContainer.style.display = "none";
+        if (rolesContainer) rolesContainer.style.display = "none";
         if (typeof window.loadBooks === "function") window.loadBooks();
       } else if (item.dataset.tab === "profile") {
         if (booksContainer) booksContainer.style.display = "none";
         if (profileContainer) profileContainer.style.display = "block";
         if (transactionsContainer) transactionsContainer.style.display = "none";
+        if (rolesContainer) rolesContainer.style.display = "none";
         if (typeof window.loadBorrowedBooks === "function") window.loadBorrowedBooks();
         // refresh security question when switching to profile
         await loadSecurityQuestion();
@@ -30,7 +33,14 @@
         if (booksContainer) booksContainer.style.display = "none";
         if (profileContainer) profileContainer.style.display = "none";
         if (transactionsContainer) transactionsContainer.style.display = "block";
+        if (rolesContainer) rolesContainer.style.display = "none";
         if (typeof window.loadAllTransactions === "function") window.loadAllTransactions();
+      } else if (item.dataset.tab === "roles") {
+        if (booksContainer) booksContainer.style.display = "none";
+        if (profileContainer) profileContainer.style.display = "none";
+        if (transactionsContainer) transactionsContainer.style.display = "none";
+        if (rolesContainer) rolesContainer.style.display = "block";
+        if (typeof window.loadRoles === "function") window.loadRoles();
       }
     });
   });

@@ -1,5 +1,5 @@
 const express = require("express");
-const { body, validationResult } = require("express-validator");
+const { body, param, validationResult } = require("express-validator");
 const User = require("../models/User");
 const { auditLogger } = require("../winston-logger");
 const { requireAuth, allowRoles } = require("../authz");
@@ -268,5 +268,68 @@ router.get("/logs", allowRoles("admin"), (req, res) => {
     res.type("text/plain").send("");
   }
 });
+
+// GET all users (Admin-only)
+router.get("/users", allowRoles("admin"), async (req, res) => {
+  try {
+    const users = await User.find().select("_id username email role");
+
+    auditLogger.info({
+      evt: "USERS_LIST_VIEW",
+      by: req.session.user.username || req.session.user.email,
+      ip: req.ip,
+    });
+
+    res.json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch users" });
+  }
+});
+
+// GET all users (Admin-only)
+router.post(
+  "/change-role/:id",
+  allowRoles("admin"),
+  param("id").isMongoId(),
+  body("role").isIn(["admin", "customer", "librarian"]),
+  async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      const { id } = req.params;
+      const { role } = req.body;
+
+      const userToUpdate = await User.findById(id);
+      if (!userToUpdate) {
+        return res.status(404).json({ message: "User not found." });
+      }
+
+      const oldRole = userToUpdate.role;
+      const actorId = req.session.user._id;
+
+      await userToUpdate.changeRole(role, actorId);
+
+      auditLogger.info({
+        evt: "ROLE_CHANGE",
+        by: req.session.user.username || req.session.user.email,
+        targetUser: userToUpdate.username || userToUpdate.email,
+        oldRole: oldRole,
+        newRole: userToUpdate.role,
+        ip: req.ip,
+      });
+
+      res.status(200).json({ message: "Role updated successfully.", newRole: userToUpdate.role });
+    } catch (error) {
+      if (error.code === "ROLE_SELF_CHANGE" || error.code === "ROLE_INVALID") {
+        return res.status(400).json({ message: error.message });
+      }
+      next(error);
+    }
+  }
+);
 
 module.exports = router;
