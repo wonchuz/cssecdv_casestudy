@@ -33,8 +33,8 @@ async function run() {
   const users = [
     { email: "admin@example.com", role: "admin",            fullName: "Admin User",          username: "admin",  pwd: "Admin!23456",
       qa: [{...pick("q01"), answer: "violet otter cobalt"}, {...pick("q03"), answer: "carrot-plane-77"}] },
-    { email: "pm@example.com",    role: "product_manager",  fullName: "Product Manager",     username: "pmgr",   pwd: "Manager!23456",
-      qa: [{...pick("q02"), answer: "storm glass 221"},     {...pick("q05"), answer: "elm avenue north"}] },
+    // { email: "pm@example.com",    role: "product_manager",  fullName: "Product Manager",     username: "pmgr",   pwd: "Manager!23456",
+    //   qa: [{...pick("q02"), answer: "storm glass 221"},     {...pick("q05"), answer: "elm avenue north"}] },
     { email: "lib@example.com",   role: "librarian",     fullName: "Librarian",        username: "lib",    pwd: "Lib!234567",
       qa: [{...pick("q04"), answer: "mint-river-foam"},     {...pick("q06"), answer: "orbit violet rice"}] },
     { email: "cust@example.com",  role: "customer",         fullName: "Customer Account",    username: "cust",   pwd: "Customer!23456",
