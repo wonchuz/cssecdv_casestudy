@@ -60,7 +60,7 @@
 
       const transactionsTab = document.querySelector('[data-tab="transactions"]');
       const rolesTab = document.querySelector('[data-tab="roles"]');
-      const manageReservationsTab = document.querySelector('[data-tab="roles"]');
+      const manageReservationsTab = document.querySelector('[data-tab="reservations"]');
         if (transactionsTab || rolesTab) {
           if (me.role === "admin") {
             transactionsTab.style.display = "block";

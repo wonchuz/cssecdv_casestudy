@@ -142,14 +142,6 @@ router.post(
       b.borrowedBy = null;
       await b.save();
 
-      const transaction = new Transaction({
-        book: b._id,
-        user: borrowedBy,
-        type: "return",
-        librarian: req.session.user.id
-      });
-      await transaction.save();
-
       auditLogger.info({
         evt: "BOOK_RETURN",
         id: b._id.toString(),
