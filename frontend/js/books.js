@@ -309,26 +309,25 @@ async function loadRoles() {
     });
   }
 
-  // Get all reservations (librarian only)
-  async function fetchReservations() {
-    try {
-      const res = await fetch("/books/reservations", {
-        method: "GET",
-        credentials: "include" // send cookies/session
-      });
-      if (!res.ok) throw new Error("Failed to fetch reservations");
-      const data = await res.json();
-      // console.log("Reservations:", data);
-      return data;
-    } catch (err) {
-      console.error(err);
-    }
+// Get all reservations (librarian only)
+async function fetchReservations() {
+  try {
+    const res = await api("/books/reservations", {
+      method: "GET",
+      credentials: "include" // send cookies/session
+    });
+    
+    return res;
+
+  } catch (err) {
+    console.error(err);
   }
+}
 
   // Update reservation status
   async function updateReservationStatus(reservationId, newStatus) {
     try {
-      const res = await fetch(`/books/${reservationId}/status`, {
+      const res = await api(`/books/${reservationId}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json"
@@ -348,25 +347,30 @@ async function loadRoles() {
     }
   }
 
-  // Render reservations into the DOM
-  async function loadReservations() {
+// Render reservations into the DOM
+async function loadReservations() {
     const container = document.getElementById("reservationList");
     container.innerHTML = "<p>Loading reservations...</p>";
-
     const reservations = await fetchReservations();
     container.innerHTML = ""; // clear loading text
 
+    // Add this check to ensure 'reservations' is a valid array
+    if (!reservations || !Array.isArray(reservations) || reservations.length === 0) {
+        container.innerHTML = "<p>No reservations found.</p>";
+        return;
+    }
+
     reservations.forEach(res => {
-      const row = document.createElement("div");
-      row.innerHTML = `
-        <strong>${res.book?.title || "Unknown Book"}</strong> 
-        — Reserved by: ${res.reservedBy?.username || "Unknown User"} 
-        — Status: ${res.status}
-        ${renderButtons(res)}
-      `;
-      container.appendChild(row);
+        const row = document.createElement("div");
+        row.innerHTML = `
+            <strong>${res.book?.title || "Unknown Book"}</strong> 
+            — Reserved by: ${res.reservedBy?.username || "Unknown User"} 
+            — Status: ${res.status}
+            ${renderButtons(res)}
+        `;
+        container.appendChild(row);
     });
-  }
+}
 
   // Decide which buttons to show based on status
   function renderButtons(reservation) {
@@ -409,5 +413,5 @@ async function loadRoles() {
   window.loadReservations = loadReservations;
 
   // initial load
-  (async () => { await loadMe(); await loadBooks(); await loadBorrowedBooks(); await loadAllTransactions();})();
+  (async () => { await loadMe(); await loadBooks(); await loadBorrowedBooks(); await loadAllTransactions(); await loadReservations();})();
 })();
