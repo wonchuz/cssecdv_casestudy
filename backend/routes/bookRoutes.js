@@ -3,6 +3,7 @@ const { body, param, validationResult } = require("express-validator");
 const { requireAuth, allowRoles } = require("../authz");
 const Book = require("../models/Book");
 const { auditLogger } = require("../winston-logger");
+const Reservation = require("../models/Reservation");
 
 const router = express.Router();
 
@@ -100,6 +101,14 @@ router.post(
       });
       await transaction.save();
 
+      await Reservation.create({
+        book: b._id,
+        reservedBy: req.session.user.id,
+        status: "pending",
+        createdAt: new Date()
+      });
+
+
       auditLogger.info({
         evt: "BOOK_BORROW",
         id: b._id.toString(),
@@ -161,5 +170,73 @@ router.post(
     }
   }
 );
+
+// GET all reservations (for librarians)
+router.get("/books/reservations", allowRoles("librarian"), async (req, res) => {
+  try {
+    const reservations = await Reservation.find()
+      .populate("book", "title author")
+      .populate("reservedBy", "username email")
+      .sort({ createdAt: -1 });
+
+    res.json(reservations);
+  } catch (err) {
+    console.error("Error fetching reservations:", err);
+    res.status(500).json({ error: "Failed to get reservations" });
+  }
+});
+
+// update reservation status and adjust book state
+router.patch("/books/:id/status", allowRoles("librarian"), async (req, res) => {
+  try {
+    const { status } = req.body;
+    const validStatuses = ["pending", "borrowed", "returned", "cancelled"];
+
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: "Invalid status" });
+    }
+
+    const reservation = await Reservation.findById(req.params.id).populate("book");
+    if (!reservation) {
+      return res.status(404).json({ error: "Reservation not found" });
+    }
+
+    // Status change rules
+    if (reservation.status === "pending" && !["borrowed", "cancelled"].includes(status)) {
+      return res.status(400).json({ error: "Only borrow or cancel allowed from pending" });
+    }
+    if (reservation.status === "borrowed" && status !== "returned") {
+      return res.status(400).json({ error: "Only return allowed from borrowed" });
+    }
+    if (["returned", "cancelled"].includes(reservation.status)) {
+      return res.status(400).json({ error: "No changes allowed after return/cancel" });
+    }
+
+    // Update reservation status
+    reservation.status = status;
+    await reservation.save();
+
+    // Adjust book schema based on status
+    const book = await Book.findById(reservation.book._id);
+    if (!book) {
+      return res.status(404).json({ error: "Book not found for this reservation" });
+    }
+
+    if (status === "borrowed") {
+      book.borrowed = true;
+      book.borrowedBy = reservation.reservedBy;
+    } else if (status === "returned" || status === "cancelled") {
+      book.borrowed = false;
+      book.borrowedBy = null;
+    }
+
+    await book.save();
+
+    res.json({ message: "Reservation status updated and book adjusted", reservation, book });
+  } catch (err) {
+    console.error("Error updating reservation:", err);
+    res.status(500).json({ error: "Failed to update status" });
+  }
+});
 
 module.exports = router;

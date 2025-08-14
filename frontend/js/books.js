@@ -303,12 +303,104 @@ async function loadRoles() {
     });
   }
 
+  // Get all reservations (librarian only)
+  async function fetchReservations() {
+    try {
+      const res = await fetch("/books/reservations", {
+        method: "GET",
+        credentials: "include" // send cookies/session
+      });
+      if (!res.ok) throw new Error("Failed to fetch reservations");
+      const data = await res.json();
+      // console.log("Reservations:", data);
+      return data;
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  // Update reservation status
+  async function updateReservationStatus(reservationId, newStatus) {
+    try {
+      const res = await fetch(`/books/${reservationId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update status");
+      }
+      console.log("Updated reservation:", data);
+      return data;
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  // Render reservations into the DOM
+  async function loadReservations() {
+    const container = document.getElementById("reservationList");
+    container.innerHTML = "<p>Loading reservations...</p>";
+
+    const reservations = await fetchReservations();
+    container.innerHTML = ""; // clear loading text
+
+    reservations.forEach(res => {
+      const row = document.createElement("div");
+      row.innerHTML = `
+        <strong>${res.book?.title || "Unknown Book"}</strong> 
+        — Reserved by: ${res.reservedBy?.username || "Unknown User"} 
+        — Status: ${res.status}
+        ${renderButtons(res)}
+      `;
+      container.appendChild(row);
+    });
+  }
+
+  // Decide which buttons to show based on status
+  function renderButtons(reservation) {
+    let buttons = "";
+
+    switch (reservation.status) {
+      case "pending":
+        buttons += `<button onclick="handleStatusChange('${reservation._id}', 'confirmed')">Confirm</button>`;
+        buttons += `<button onclick="handleStatusChange('${reservation._id}', 'cancelled')">Cancel</button>`;
+        break;
+      case "confirmed":
+        buttons += `<button onclick="handleStatusChange('${reservation._id}', 'borrowed')">Borrow</button>`;
+        buttons += `<button onclick="handleStatusChange('${reservation._id}', 'cancelled')">Cancel</button>`;
+        break;
+      case "borrowed":
+        buttons += `<button onclick="handleStatusChange('${reservation._id}', 'returned')">Return</button>`;
+        break;
+      case "returned":
+      case "cancelled":
+        buttons += `<span>No actions available</span>`;
+        break;
+    }
+
+    return buttons;
+  }
+
+  // Handle status change and reload
+  async function handleStatusChange(id, status) {
+    await updateReservationStatus(id, status);
+    loadReservations();
+  }
+
+
   // expose for layout.js
   window.loadMe = loadMe;
   window.loadBooks = loadBooks;
   window.loadBorrowedBooks = loadBorrowedBooks;
   window.loadAllTransactions = loadAllTransactions;
   window.loadRoles = loadRoles;
+  window.loadReservations = loadReservations;
 
   // initial load
   (async () => { await loadMe(); await loadBooks(); await loadBorrowedBooks(); await loadAllTransactions();})();
