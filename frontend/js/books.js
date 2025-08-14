@@ -65,9 +65,15 @@
           if (me.role === "admin") {
             transactionsTab.style.display = "block";
             rolesTab.style.display = "block";
+            manageReservationsTab.style.display ="block";
+          } else if (me.role === "librarian") {
+            transactionsTab.style.display = "none";
+            rolesTab.style.display = "none";
+            manageReservationsTab.style.display ="block";
           } else {
             transactionsTab.style.display = "none";
             rolesTab.style.display = "none";
+            manageReservationsTab.style.display = "none";
           }
         }
       return me;
