@@ -93,13 +93,6 @@ router.post(
       b.borrowed = true;
       b.borrowedBy = req.session.user.id;
       await b.save();
-      
-      const transaction = new Transaction({
-        book: b._id,
-        user: req.session.user.id,
-        type: "borrow",
-      });
-      await transaction.save();
 
       await Reservation.create({
         book: b._id,
