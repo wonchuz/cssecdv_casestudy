@@ -16,6 +16,7 @@
       <div class="nav-item" data-tab="profile">Profile</div>
       <div class="nav-item" data-tab="transactions">Transactions</div>
       <div class="nav-item" data-tab="roles">Roles</div>
+      <div class="nav-item" data-tab="reservations">Manage Reservations</div>
     </nav>
 
     <main class="content" id="content">
@@ -91,6 +92,12 @@
           <div class="role-details" id="roleList">
               <p>Loading roles...</p>
           </div>
+      </div>
+
+      <!-- Manage Reservations(hidden unless lib) -->
+      <div class="form-container-mr" id="manageReservationsContainer" style="display:none;">
+          <h2 class="page-title">Manage Reservations</h2>
+          <div class="reservation-list" id="reservationList">Loading...</div>
       </div>
 
     </main>
