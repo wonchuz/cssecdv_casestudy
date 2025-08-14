@@ -326,26 +326,23 @@ async function fetchReservations() {
 
   // Update reservation status
   async function updateReservationStatus(reservationId, newStatus) {
-    try {
-      const res = await api(`/books/${reservationId}/status`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include",
-        body: JSON.stringify({ status: newStatus })
-      });
+  try {
+    const data = await api(`/books/${reservationId}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ status: newStatus })
+    });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to update status");
-      }
-      console.log("Updated reservation:", data);
-      return data;
-    } catch (err) {
-      console.error(err);
+    if (!data || data.error) {
+      throw new Error(data?.error || "Failed to update status");
     }
+    console.log("Updated reservation:", data);
+    return data;
+  } catch (err) {
+    console.error(err);
   }
+}
 
 // Render reservations into the DOM
 async function loadReservations() {
@@ -361,41 +358,73 @@ async function loadReservations() {
     }
 
     reservations.forEach(res => {
-        const row = document.createElement("div");
-        row.innerHTML = `
-            <strong>${res.book?.title || "Unknown Book"}</strong> 
-            — Reserved by: ${res.reservedBy?.username || "Unknown User"} 
-            — Status: ${res.status}
-            ${renderButtons(res)}
-        `;
-        container.appendChild(row);
-    });
+    const row = document.createElement("div");
+    row.style.display = "flex";
+    row.style.justifyContent = "space-between";
+    row.style.alignItems = "center";
+    row.style.padding = "8px";
+    row.style.borderBottom = "1px solid #ccc";
+
+    const statusText = res.status.charAt(0).toUpperCase() + res.status.slice(1);
+
+    // Left side: reservation info
+    const info = document.createElement("div");
+    info.innerHTML = `
+        <strong>${res.book?.title || "Unknown Book"}</strong> 
+        by ${res.book?.author || "Unknown Author"} 
+        — Reserved by: ${res.reservedBy?.username || "Unknown User"} 
+        <br><strong>Status</strong>: ${statusText}
+    `;
+
+    // Right side: buttons
+    const buttons = document.createElement("div");
+    buttons.appendChild(renderButtons(res));
+
+    // Append
+    row.appendChild(info);
+    row.appendChild(buttons);
+    container.appendChild(row);
+});
+
 }
 
-  // Decide which buttons to show based on status
-  function renderButtons(reservation) {
-    let buttons = "";
+  function renderButtons(res) {
+    const container = document.createElement("div");
+    container.style.display = "flex";
+    container.style.gap = "6px";
 
-    switch (reservation.status) {
-      case "pending":
-        buttons += `<button onclick="handleStatusChange('${reservation._id}', 'confirmed')">Confirm</button>`;
-        buttons += `<button onclick="handleStatusChange('${reservation._id}', 'cancelled')">Cancel</button>`;
-        break;
-      case "confirmed":
-        buttons += `<button onclick="handleStatusChange('${reservation._id}', 'borrowed')">Borrow</button>`;
-        buttons += `<button onclick="handleStatusChange('${reservation._id}', 'cancelled')">Cancel</button>`;
-        break;
-      case "borrowed":
-        buttons += `<button onclick="handleStatusChange('${reservation._id}', 'returned')">Return</button>`;
-        break;
-      case "returned":
-      case "cancelled":
-        buttons += `<span>No actions available</span>`;
-        break;
+    const status = res.status?.toLowerCase();
+
+    if (status === "pending") {
+        // Confirm Pickup
+        const confirmBtn = document.createElement("button");
+        confirmBtn.textContent = "Confirm Claim";
+        confirmBtn.classList.add("confirm-claim"); 
+        confirmBtn.addEventListener("click", () => handleStatusChange(res._id, "borrowed"));
+        container.appendChild(confirmBtn);
+
+        // Cancel
+        const cancelBtn = document.createElement("button");
+        cancelBtn.textContent = "Cancel";
+        cancelBtn.classList.add("cancel");
+        cancelBtn.addEventListener("click", () => handleStatusChange(res._id, "cancelled"));
+        container.appendChild(cancelBtn);
+
+    } else if (status === "borrowed") {
+        // Return Book
+        const returnBtn = document.createElement("button");
+        returnBtn.textContent = "Return Book";
+        returnBtn.classList.add("return");
+        returnBtn.addEventListener("click", () => handleStatusChange(res._id, "returned"));
+        container.appendChild(returnBtn);
+
+    } else if (status === "cancelled") {
+        // Show nothing
     }
 
-    return buttons;
-  }
+    return container;
+}
+
 
   // Handle status change and reload
   async function handleStatusChange(id, status) {

@@ -157,7 +157,7 @@ router.post(
 );
 
 // GET all reservations (for librarians)
-router.get("/reservations", allowRoles("librarian"), async (req, res) => {
+router.get("/reservations", allowRoles("admin", "librarian"), async (req, res) => {
   try {
     const reservations = await Reservation.find()
       .populate("book", "title author")
@@ -172,7 +172,7 @@ router.get("/reservations", allowRoles("librarian"), async (req, res) => {
 });
 
 // update reservation status and adjust book state
-router.patch("/:id/status", allowRoles("librarian"), async (req, res) => {
+router.patch("/:id/status", allowRoles("admin", "librarian"), async (req, res) => {
   try {
     const { status } = req.body;
     const validStatuses = ["pending", "borrowed", "returned", "cancelled"];

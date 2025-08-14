@@ -108,3 +108,34 @@ button:hover:not(:disabled) {
 .user-details {
   flex-grow: 1;
 }
+
+.cancel {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  
+}
+.cancel:hover {
+  background-color: #c82333;
+  border-color: #bd2130;
+  cursor: pointer;
+}
+
+.return {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+.return:hover {
+  background-color: #0069d9;
+  border-color: #005cbf;
+  cursor: pointer;
+}
+
+.confirm-claim {
+  background-color: #28a745;
+  border-color: #28a745;
+}
+.confirm-claim:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+  cursor: pointer;
+}
